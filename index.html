@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#FBD921">
+<title>TUBE Coffee — Privilege Coupons (Standalone)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14171A; --ink-2:#1E2226;
+    --paper:#FFFDF6; --paper-dim:#F3EEDD;
+    --gold:#FBD921; --gold-dim:#E0BE10;
+    --teal:#2E8B8B; --success:#2E9E64; --danger:#D8483C; --muted:#8A9099;
+    --shadow:0 12px 28px rgba(0,0,0,0.22);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:radial-gradient(circle at 20% 0%, #21262b 0%, var(--ink) 55%) fixed;color:var(--paper);font-family:'Inter',sans-serif;min-height:100vh;}
+  #root-app{max-width:1180px;margin:0 auto;padding:20px 20px 80px;display:none;}
+
+  #login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 20% 0%, #21262b 0%, var(--ink) 55%);z-index:900;padding:20px;}
+  .login-card{background:var(--paper);color:var(--ink);border-radius:18px;padding:32px 28px;width:100%;max-width:380px;box-shadow:var(--shadow);text-align:center;}
+  .login-card .lb{width:56px;height:56px;margin:0 auto 14px;border-radius:14px;background:linear-gradient(135deg,var(--gold),var(--gold-dim));display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:20px;transform:rotate(-4deg);}
+  .login-card h1{font-family:'Space Grotesk';font-size:19px;margin:0 0 2px;}
+  .login-card .sub{font-size:12.5px;color:#5b6570;margin-bottom:18px;}
+  .login-card input{width:100%;background:var(--paper-dim);border:1px solid transparent;border-radius:9px;padding:11px 13px;font-size:14px;margin-bottom:10px;font-family:'Inter';-webkit-appearance:none;appearance:none;color:var(--ink);}
+  input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus{
+    -webkit-text-fill-color:var(--ink) !important;
+    -webkit-box-shadow:0 0 0 1000px var(--paper-dim) inset !important;
+    transition:background-color 9999s ease-in-out 0s;
+  }
+  .login-card .login-err{color:var(--danger);font-size:12.5px;font-weight:600;min-height:16px;margin-bottom:6px;}
+  .login-btn{width:100%;background:var(--ink);color:var(--gold);border:none;border-radius:9px;padding:12px;font-weight:700;font-family:'Space Grotesk';cursor:pointer;letter-spacing:0.3px;}
+  .login-note{font-size:11px;color:#8b93a0;margin-top:14px;line-height:1.5;text-align:left;}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--gold-dim));display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;color:var(--ink);font-size:16px;transform:rotate(-4deg);box-shadow:var(--shadow);}
+  .brand h1{font-family:'Space Grotesk';font-size:19px;margin:0;}
+  .brand span{display:block;font-size:11.5px;color:var(--muted);margin-top:1px;}
+  .who{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);padding:7px 14px 7px 7px;border-radius:999px;}
+  .who .av{width:30px;height:30px;border-radius:50%;background:var(--gold);color:var(--ink);font-weight:700;font-size:12.5px;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';}
+  .who .nm{font-size:12.5px;font-weight:600;line-height:1.15;}
+  .who .rl{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;}
+  .signout{background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;text-decoration:underline;margin-left:2px;}
+
+  h2.section-title{font-family:'Space Grotesk';font-size:15px;text-transform:uppercase;letter-spacing:1.2px;color:var(--gold);margin:0 0 14px;font-weight:600;}
+  .panel{background:rgba(255,255,255,0.045);border:1px solid rgba(255,255,255,0.09);border-radius:16px;padding:20px;margin-bottom:20px;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media(max-width:760px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+
+  select,input[type=text],input[type=number],input[type=date],input[type=password]{width:100%;background:var(--paper);color:var(--ink);border:none;border-radius:8px;padding:10px 12px;font-family:'Inter';font-size:14px;font-weight:500;-webkit-appearance:none;appearance:none;}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+  .field{margin-bottom:14px;}
+  .btn{border:none;border-radius:9px;padding:11px 18px;font-family:'Inter';font-weight:700;font-size:13.5px;cursor:pointer;}
+  .btn-gold{background:var(--gold);color:var(--ink);}
+  .btn-teal{background:var(--teal);color:#fff;}
+  .btn-ghost{background:transparent;color:var(--paper);border:1px solid rgba(255,255,255,0.3);}
+  .btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+  .role-tabs{display:inline-flex;gap:6px;background:rgba(0,0,0,0.25);padding:5px;border-radius:12px;margin-bottom:18px;flex-wrap:wrap;}
+  .role-tab{border:none;background:transparent;color:var(--muted);font-weight:600;font-size:13px;padding:9px 16px;border-radius:9px;cursor:pointer;}
+  .role-tab.active{background:var(--gold);color:var(--ink);}
+
+  .stat-card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:14px;padding:16px 18px;}
+  .stat-card .num{font-family:'Space Grotesk';font-size:26px;font-weight:700;color:var(--gold);}
+  .stat-card .lbl{font-size:11.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;}
+
+  .ticket{position:relative;display:flex;background:var(--paper);color:var(--ink);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:16px;}
+  .ticket-stub{flex:1;padding:16px 18px;position:relative;}
+  .ticket-type{font-family:'Space Grotesk';font-weight:700;font-size:15px;margin-bottom:2px;}
+  .ticket-emp{font-size:12.5px;color:#4b5b5e;font-weight:500;margin-bottom:10px;}
+  .ticket-meta{display:flex;gap:14px;font-size:11px;color:#6b7a7d;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;flex-wrap:wrap;}
+  .ticket-code{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:var(--ink-2);margin-top:10px;letter-spacing:0.5px;}
+  .ticket-divider{width:0;border-left:2.5px dashed #cfc9ad;position:relative;}
+  .ticket-divider::before,.ticket-divider::after{content:"";position:absolute;left:-9px;width:18px;height:18px;border-radius:50%;background:var(--ink);}
+  .ticket-divider::before{top:-9px;} .ticket-divider::after{bottom:-9px;}
+  .ticket-qr{width:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;gap:6px;background:var(--paper-dim);}
+  .ticket-qr img{width:88px;height:88px;border-radius:4px;}
+  .ticket-qr .exp{font-size:10px;color:#6b7a7d;font-weight:600;text-align:center;}
+  .stamp{position:absolute;top:12px;right:16px;font-family:'Space Grotesk';font-weight:700;font-size:11px;letter-spacing:1px;padding:4px 10px;border-radius:5px;border:2px solid;transform:rotate(-8deg);text-transform:uppercase;}
+  .stamp.redeemed{color:var(--success);border-color:var(--success);}
+  .stamp.expired{color:var(--danger);border-color:var(--danger);}
+  .badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;text-transform:uppercase;letter-spacing:0.4px;}
+  .badge.active{background:rgba(46,158,100,0.15);color:var(--success);}
+  .badge.redeemed{background:rgba(46,139,139,0.18);color:var(--teal);}
+  .badge.expired{background:rgba(216,72,60,0.15);color:var(--danger);}
+  .badge.draft{background:rgba(255,255,255,0.1);color:var(--paper);}
+  .badge.pending{background:rgba(251,217,33,0.18);color:var(--gold);}
+
+  .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .bar-label{width:110px;font-size:12.5px;font-weight:600;flex-shrink:0;}
+  .bar-track{flex:1;background:rgba(255,255,255,0.08);border-radius:6px;height:16px;overflow:hidden;}
+  .bar-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:6px;}
+  .bar-val{width:70px;text-align:right;font-size:12px;color:var(--muted);font-weight:600;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.15);}
+  td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,0.07);}
+  .table-wrap{overflow-x:auto;}
+  .empty-note{color:var(--muted);font-size:13px;padding:10px 2px;}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;}
+  .checkbox-list{max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:4px;background:rgba(0,0,0,0.2);border-radius:8px;}
+  .checkbox-item{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 6px;}
+  .msg{padding:12px 14px;border-radius:9px;font-size:13.5px;font-weight:600;margin-top:10px;}
+  .msg.err{background:rgba(216,72,60,0.15);color:#ff9d92;}
+  .msg.ok{background:rgba(46,158,100,0.15);color:#8fe6b6;}
+  #scanner-video{width:100%;max-width:320px;border-radius:12px;display:none;margin:10px 0;}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:var(--ink);color:var(--gold);padding:11px 18px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s ease;z-index:1000;box-shadow:var(--shadow);}
+  .toast.show{opacity:1;transform:translate(-50%,0);}
+  .banner-note{background:rgba(251,217,33,0.12);border:1px solid rgba(251,217,33,0.3);border-radius:10px;padding:9px 14px;font-size:12px;color:var(--gold);margin-bottom:18px;}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="lb">TC</div>
+    <h1>Privilege Coupons</h1>
+    <div class="sub">Standalone — its own accounts, no HRM link.</div>
+    <div class="login-err" id="login-err"></div>
+    <input type="text" id="login-id" placeholder="Employee ID or Franchisee ID">
+    <input type="password" id="login-pass" placeholder="Password">
+    <button class="login-btn" onclick="doLogin()">Sign in</button>
+    <div class="login-note">Employees sign in with TUB-00001 style IDs (password = date of birth, DDMMYYYY). Franchisees sign in with FR-0001 style IDs and the password HR set for them. Everything here lives only in this browser tab's memory — refreshing the page resets all accounts and coupons.</div>
+  </div>
+</div>
+
+<div id="root-app">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">TC</div>
+      <div><h1>Privilege Coupons</h1><span>Standalone — monthly franchisee &amp; employee coupons</span></div>
+    </div>
+    <div class="who">
+      <div class="av" id="who-av">?</div>
+      <div><div class="nm" id="who-name">—</div><div class="rl" id="who-role">—</div></div>
+      <button class="signout" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+  <div class="banner-note">Demo mode — no backend. Data resets if you refresh the page.</div>
+  <div id="view"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════ IN-MEMORY DATA (no backend, no HRM link) ═══════════════════ */
+let BRANCHES = ['BKK1 Flagship','Toul Kork','Siem Reap'];
+let BRANCH_MANAGERS = {}; // branch name -> employee id, informational only (directory, not access control)
+function allBranches(){ return [...new Set([...BRANCHES, ...EMPLOYEES.map(e=>e.branch), ...FRANCHISEES.map(f=>f.store)])].filter(Boolean).sort(); }
+let seq = 1;
+function nextId(prefix){ return prefix + String(seq++).padStart(3,'0'); }
+function uid8(){ return Math.random().toString(36).slice(2,10).toUpperCase(); }
+function randCode(prefix){ return prefix+'-'+uid8().slice(0,4)+'-'+uid8().slice(0,4); }
+function qrUrl(code){ return 'https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=0&data='+encodeURIComponent(code); }
+function todayYYYYMM(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function fmtDate(d){ return d ? new Date(d).toISOString().slice(0,10) : '—'; }
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2400); }
+// Escapes free-text (names, descriptions, terms...) before it goes into innerHTML,
+// so a typed "<" or "\"" can't break the layout or inject markup.
+function esc(s){ return (s||'').toString().replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// Sets a readable column width per column based on the longest value, for nicer .xlsx exports.
+function autoFitCols(rows){
+  if(!rows.length) return [];
+  const widths = rows[0].map((_,i)=>Math.max(...rows.map(r=>String(r[i]??'').length), 8)+2);
+  return widths.map(w=>({wch:Math.min(w,40)}));
+}
+// Same idea, but for XLSX.utils.json_to_sheet's array-of-objects input rather than array-of-arrays.
+function autoFitColsObj(data){
+  if(!data.length) return [];
+  return Object.keys(data[0]).map(h=>({wch:Math.min(Math.max(h.length, ...data.map(r=>String(r[h]??'').length))+2, 40)}));
+}
+/* ---- Audit log: a visible trail of every admin action, shown under Human Resources ---- */
+let AUDIT = [];
+function logAudit(text){ AUDIT.unshift({ text, ts:new Date(), by: currentUser ? currentUser.name : 'System' }); }
+
+/* ---- Employee ID: TUB-00001 through TUB-10000 ---- */
+function tubNum(id){ const m=/^TUB-(\d{5})$/.exec(id||''); return m ? parseInt(m[1],10) : null; }
+function isValidTubId(id){ const n=tubNum(id); return n!==null && n>=1 && n<=10000; }
+function nextAvailableTubId(){
+  const used = new Set(EMPLOYEES.map(e=>tubNum(e.id)).filter(n=>n!==null));
+  for(let n=1;n<=10000;n++){ if(!used.has(n)) return 'TUB-'+String(n).padStart(5,'0'); }
+  return null; // all 10,000 IDs are taken
+}
+
+/* ---- Franchisee ID: FR-0001 through FR-9999 ---- */
+function frNum(id){ const m=/^FR-(\d{4})$/.exec(id||''); return m ? parseInt(m[1],10) : null; }
+function isValidFrId(id){ const n=frNum(id); return n!==null && n>=1 && n<=9999; }
+function nextAvailableFrId(){
+  const used = new Set(FRANCHISEES.map(f=>frNum(f.id)).filter(n=>n!==null));
+  for(let n=1;n<=9999;n++){ if(!used.has(n)) return 'FR-'+String(n).padStart(4,'0'); }
+  return null;
+}
+function pad2(n){ return String(n).padStart(2,'0'); }
+function isoDobToPassword(iso){ const [y,m,d]=iso.split('-'); return d+m+y; } // <input type=date> always gives YYYY-MM-DD
+function parseDobValue(raw){
+  if(raw instanceof Date && !isNaN(raw.getTime())) return { y:raw.getFullYear(), m:raw.getMonth()+1, d:raw.getDate() };
+  const s = String(raw||'').trim(); if(!s) return null;
+  let m;
+  if(m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s)) return {y:+m[1], m:+m[2], d:+m[3]};       // yyyy-mm-dd
+  if(m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s)) return {y:+m[3], m:+m[2], d:+m[1]};      // dd/mm/yyyy
+  if(m = /^(\d{2})(\d{2})(\d{4})$/.exec(s)) return {y:+m[3], m:+m[2], d:+m[1]};              // ddmmyyyy
+  return null;
+}
+function validDobParts(p){ return !!p && p.d>=1 && p.d<=31 && p.m>=1 && p.m<=12 && p.y>=1940 && p.y<=new Date().getFullYear(); }
+function dobPartsToPassword(p){ return pad2(p.d)+pad2(p.m)+p.y; }
+function randomDob(){ const y=1985+Math.floor(Math.random()*20), m=1+Math.floor(Math.random()*12), d=1+Math.floor(Math.random()*28); return `${y}-${pad2(m)}-${pad2(d)}`; }
+
+// role: 'admin' | 'manager' | 'supervisor' | 'employee'  (same vocabulary as before, own accounts now)
+// Password for every account = date of birth as DDMMYYYY.
+// Only one bootstrap account exists so the app isn't locked out on first load.
+// Add every real account yourself from Human Resources → Employees.
+let EMPLOYEES = [
+  { id:'TUB-00001', name:'HR Administrator', dob:'1990-01-01', password:'01011990', role:'admin', branch:'BKK1 Flagship', status:'active', crossStoreAccess:false },
+];
+
+// Franchisees are a separate audience from Employees — a franchise business/contact,
+// not an individual with a date of birth, so HR sets their password directly.
+// Fields mirror the "Franchisee Master": ID, name, contact, store, contract status, eligible.
+let FRANCHISEES = [];
+
+/* ═══════════════════ COUPON CAMPAIGNS ═══════════════════
+   Follows the draft's Coupon Creation Flow:
+     Step 1 Basic Info   → name, code, description, brand, category, benefit, terms
+     Step 2 Eligibility   → who can receive it
+     Step 3 Coupon Rules  → dates, quantities, redemption limit, applicable stores, hours
+     Step 4 Publish       → draft → pending → approved → published (→ suspended/revoked)
+   No seed campaigns — HR creates every one from scratch. */
+let CAMPAIGNS = [];
+let campaignSeq = 1;
+function typeById(id){ return CAMPAIGNS.find(t=>t.id===id) || {label:'Unknown', name:'Unknown', benefit:'', brand:''}; }
+function publishedCampaigns(){ return CAMPAIGNS.filter(c=>c.status==='published'); }
+function empById(id){ return EMPLOYEES.find(e=>e.id===id) || {name:'Unknown',branch:'—'}; }
+
+let COUPONS = [];
+(function seedCoupons(){
+  const month = todayYYYYMM();
+  EMPLOYEES.filter(e=>e.role==='employee').forEach(emp=>{
+    const n = 2 + Math.floor(Math.random()*3);
+    for(let i=0;i<n;i++){
+      const type = CAMPAIGNS[Math.floor(Math.random()*CAMPAIGNS.length)];
+      const redeemed = Math.random()<0.35;
+      const expires = new Date(); expires.setMonth(expires.getMonth()+1);
+      COUPONS.push({
+        id:'C'+seq++, code:randCode(type.id.toUpperCase().slice(0,4)), holderId:emp.id, holderName:emp.name, branch:emp.branch, holderKind:'employee',
+        typeId:type.id, typeLabel:type.label, month, issuedAt:new Date(), expiresAt:expires,
+        status: redeemed?'redeemed':'active', redeemedAt: redeemed?new Date():null, redeemedBy: redeemed?emp.branch:null
+      });
+    }
+  });
+})();
+
+/* ═══════════════════ STATE ═══════════════════ */
+let currentUser = null; // {id,name,role,branch,crossStoreAccess}
+const state = {
+  role:'employee', filterMonth: todayYYYYMM(),
+  scanCode:'', scanResult:null, scanBranch:'',
+  adminTab:'dashboard',
+  filterStatus:'all', filterMonthAdmin:'all', filterSearch:'', filterAudience:'all',
+  issueType:'', issueQty:1, issueScope:'all', issueBranch:'', issueSelected:[],
+  issueExpiry:'', issueMsg:null, issueUploadRows:[], issueUploadMsg:null,
+  storeAccessMsg:null, empMsg:null, empUploadRows:[], empUploadMsg:null,
+  newEmp:{id:'',name:'',dob:'',role:'employee',branch:BRANCHES[0],department:'',position:''}, editingEmpId:null,
+  newFr:{id:'',name:'',contact:'',store:BRANCHES[0],password:''}, frMsg:null,
+  newBranchName:'', branchMsg:null,
+  campaignView:'list', campaignMsg:null, editingCampaignId:null,
+  newCampaign: {
+    name:'', code:'', description:'', brand:'TUBE Coffee', category:'', benefit:'', terms:'',
+    eligibleGroup:'all_employees', eligibleDept:'', eligiblePosition:'', eligibleFrId:'',
+    startDate:'', expiryDate:'', totalQuantity:'', qtyPerPerson:1, redemptionLimit:1,
+    applicableStores:[], hours:'',
+  },
+};
+
+function roleLabel(r){ return r==='admin'?'Human Resources':r==='manager'?'Manager':r==='supervisor'?'Store Admin':r==='franchisee'?'Franchisee':'Employee'; }
+function isStoreLocked(){ return state.role==='storeAdmin' || (state.role==='manager' && !currentUser.crossStoreAccess); }
+
+/* ═══════════════════ AUTH (local only) ═══════════════════ */
+function doLogin(){
+  const idEl=document.getElementById('login-id'), passEl=document.getElementById('login-pass'), errEl=document.getElementById('login-err');
+  const id = idEl.value.trim().toUpperCase(), pass = passEl.value;
+  errEl.textContent='';
+
+  const emp = EMPLOYEES.find(e=>e.id===id);
+  const fr = !emp ? FRANCHISEES.find(f=>f.id===id) : null;
+  const acct = emp || fr;
+  if(!acct || acct.password!==pass){ errEl.textContent='Incorrect ID or password.'; return; }
+  if(acct.status==='disabled'){ errEl.textContent='This account has been disabled.'; return; }
+  if(fr && !fr.eligible){ errEl.textContent='This franchisee account is marked ineligible. Contact HR.'; return; }
+
+  if(emp){
+    currentUser = { kind:'employee', ...emp };
+    state.role = emp.role==='admin' ? 'admin' : emp.role==='manager' ? 'manager' : emp.role==='supervisor' ? 'storeAdmin' : 'employee';
+    state.scanBranch = emp.branch; state.issueBranch = emp.branch;
+  } else {
+    currentUser = { kind:'franchisee', id:fr.id, name:fr.name, branch:fr.store, role:'franchisee' };
+    state.role = 'franchisee';
+  }
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('root-app').style.display='block';
+  document.getElementById('who-name').textContent = currentUser.name;
+  document.getElementById('who-role').textContent = roleLabel(currentUser.role);
+  document.getElementById('who-av').textContent = currentUser.name.charAt(0).toUpperCase();
+  render();
+}
+function doLogout(){
+  currentUser=null;
+  document.getElementById('root-app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('login-id').value=''; document.getElementById('login-pass').value='';
+  state.scanResult=null; state.scanCode=''; state.issueMsg=null; state.storeAccessMsg=null; state.empMsg=null;
+}
+
+/* ═══════════════════ HELPERS ═══════════════════ */
+function effectiveStatus(c){
+  if(c.status==='redeemed') return 'redeemed';
+  if(c.status==='active' && new Date(c.expiresAt) < new Date()) return 'expired';
+  return c.status;
+}
+function ticketHTML(c, opts){
+  opts=opts||{};
+  const type = typeById(c.typeId);
+  const st = effectiveStatus(c);
+  const stamp = st==='redeemed' ? '<div class="stamp redeemed">Redeemed</div>' : st==='expired' ? '<div class="stamp expired">Expired</div>' : '';
+  return `
+  <div class="ticket">
+    <div class="ticket-stub">
+      ${stamp}
+      <div class="ticket-type">${type.label}</div>
+      <div class="ticket-emp">${opts.hideEmployee ? '' : (c.holderName+' · '+c.holderId+' · '+c.branch)}</div>
+      <div class="ticket-meta"><span>Status: <span class="badge ${st}">${st}</span></span></div>
+      <div class="ticket-meta" style="margin-top:8px;"><span>Issued ${fmtDate(c.issuedAt)}</span><span>Expires ${fmtDate(c.expiresAt)}</span></div>
+      <div class="ticket-code">${c.code}</div>
+    </div>
+    <div class="ticket-divider"></div>
+    <div class="ticket-qr">
+      <img src="${qrUrl(c.code)}" alt="QR code"/>
+      <div class="exp">${st==='active' ? 'Scan to redeem' : (st==='redeemed' ? 'Used '+fmtDate(c.redeemedAt) : 'No longer valid')}</div>
+    </div>
+  </div>`;
+}
+function lastNMonths(n){
+  const out=[]; const d=new Date();
+  for(let i=1;i<=n;i++){ const x=new Date(d.getFullYear(),d.getMonth()-i,1); const v=x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0'); out.push({v,label:x.toLocaleString('default',{month:'long',year:'numeric'})}); }
+  return out;
+}
+
+/* ═══════════════════ EMPLOYEE VIEW ═══════════════════ */
+function renderEmployeeView(){
+  const mine = COUPONS.filter(c=>c.holderId===currentUser.id && c.month===state.filterMonth)
+    .sort((a,b)=>(effectiveStatus(a)==='active'?0:1)-(effectiveStatus(b)==='active'?0:1));
+  return `
+  <div class="panel">
+    <div class="field" style="max-width:280px;"><label>Month</label>
+      <select id="sel-month">
+        <option value="${todayYYYYMM()}" ${state.filterMonth===todayYYYYMM()?'selected':''}>This month</option>
+        ${lastNMonths(5).map(m=>`<option value="${m.v}" ${state.filterMonth===m.v?'selected':''}>${m.label}</option>`).join('')}
+      </select>
+    </div>
+    <div class="hint">${currentUser.name} · ${currentUser.branch} — ${mine.length} coupon${mine.length===1?'':'s'} this month</div>
+  </div>
+  <h2 class="section-title">My coupons</h2>
+  ${mine.length ? mine.map(c=>ticketHTML(c,{hideEmployee:true})).join('') : '<div class="empty-note">No coupons issued for this month yet.</div>'}`;
+}
+
+/* ═══════════════════ STORE ADMIN / MANAGER VIEW ═══════════════════ */
+function renderStoreView(){
+  const scopeAll = state.role==='manager' && currentUser.crossStoreAccess;
+  return `
+  <h2 class="section-title">${scopeAll ? 'All stores' : currentUser.branch + ' — this month'}</h2>
+  ${renderStoreDashboard(scopeAll)}
+  <h2 class="section-title">Redeem a coupon</h2>
+  ${renderRedeemPanel(scopeAll)}`;
+}
+function renderStoreDashboard(scopeAll){
+  const month = todayYYYYMM();
+  const monthCoupons = COUPONS.filter(c=>c.month===month && (scopeAll || c.branch===currentUser.branch));
+  const issued = monthCoupons.length, redeemed = monthCoupons.filter(c=>c.status==='redeemed').length;
+  const active = monthCoupons.filter(c=>effectiveStatus(c)==='active').length;
+  const rate = issued ? Math.round(redeemed/issued*100) : 0;
+  let breakdown='';
+  if(scopeAll){
+    const byBranch={}; allBranches().forEach(b=>byBranch[b]={issued:0,redeemed:0});
+    monthCoupons.forEach(c=>{ if(!byBranch[c.branch]) byBranch[c.branch]={issued:0,redeemed:0}; byBranch[c.branch].issued++; if(c.status==='redeemed') byBranch[c.branch].redeemed++; });
+    const maxIssued = Math.max(...Object.values(byBranch).map(v=>v.issued),1);
+    breakdown = `<div class="panel">${Object.keys(byBranch).map(b=>{ const v=byBranch[b]; const pct=Math.round(v.issued/maxIssued*100);
+      return `<div class="bar-row"><div class="bar-label">${b}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><div class="bar-val">${v.redeemed}/${v.issued}</div></div>`; }).join('')}</div>`;
+  }
+  return `<div class="grid-3">
+    <div class="stat-card"><div class="num">${issued}</div><div class="lbl">Coupons issued</div></div>
+    <div class="stat-card"><div class="num">${redeemed}</div><div class="lbl">Redeemed (${rate}%)</div></div>
+    <div class="stat-card"><div class="num">${active}</div><div class="lbl">Still active</div></div>
+  </div>${breakdown}`;
+}
+function renderRedeemPanel(scopeAll){
+  const branchField = scopeAll
+    ? `<div class="field" style="max-width:320px;"><label>Redeeming at branch</label><select id="sel-branch">${allBranches().map(b=>`<option value="${b}" ${b===state.scanBranch?'selected':''}>${b}</option>`).join('')}</select></div>`
+    : `<div class="field" style="max-width:320px;"><label>Redeeming at branch</label><div style="padding:10px 12px;background:var(--paper-dim);border-radius:8px;color:var(--ink);font-weight:600;font-size:14px;">${currentUser.branch}</div></div>`;
+  let resultHTML='';
+  if(state.scanResult){
+    if(state.scanResult.error){ resultHTML = `<div class="msg err">${state.scanResult.error}</div>`; }
+    else{
+      const c = state.scanResult.coupon; const st = effectiveStatus(c);
+      resultHTML = `<div style="margin-top:16px;">${ticketHTML(c)}</div>
+        ${st==='active' ? `<button class="btn btn-gold" onclick="doRedeem('${c.id}')">Redeem this coupon</button>`
+          : `<div class="msg ${st==='redeemed'?'ok':'err'}">${st==='redeemed' ? 'Already redeemed on '+fmtDate(c.redeemedAt)+' at '+c.redeemedBy+'.' : 'This coupon expired on '+fmtDate(c.expiresAt)+'.'}</div>`}`;
+    }
+  }
+  const recent = COUPONS.filter(c=>c.status==='redeemed' && c.redeemedBy===state.scanBranch)
+    .sort((a,b)=>new Date(b.redeemedAt)-new Date(a.redeemedAt)).slice(0,8);
+  return `
+  <div class="panel">
+    ${branchField}
+    <div class="grid-2">
+      <div class="field"><label>Coupon code</label><input type="text" id="scan-input" placeholder="e.g. MEAL-AB12-CD34" value="${state.scanCode}"/></div>
+      <div class="field" style="display:flex;align-items:flex-end;gap:10px;">
+        <button class="btn btn-gold" onclick="doLookup()">Look up code</button>
+        <button class="btn btn-ghost" onclick="simulateScan()">Simulate QR scan</button>
+      </div>
+    </div>
+    <div class="hint">Demo mode has no camera access — "Simulate QR scan" stands in for scanning a real code.</div>
+    ${resultHTML}
+  </div>
+  <h2 class="section-title">Recently redeemed at ${state.scanBranch}</h2>
+  <div class="panel table-wrap">
+    ${recent.length ? `<table><thead><tr><th>Employee</th><th>Coupon</th><th>Code</th><th>Redeemed</th></tr></thead><tbody>
+      ${recent.map(c=>`<tr><td>${c.holderName}</td><td>${typeById(c.typeId).label}</td><td style="font-family:'JetBrains Mono';">${c.code}</td><td>${fmtDate(c.redeemedAt)}</td></tr>`).join('')}
+    </tbody></table>` : '<div class="empty-note">No redemptions at this branch yet.</div>'}
+  </div>`;
+}
+function doLookup(){
+  const code = state.scanCode.trim().toUpperCase();
+  if(!code){ state.scanResult={error:'Enter or scan a coupon code first.'}; render(); return; }
+  const c = COUPONS.find(x=>x.code===code);
+  state.scanResult = c ? {coupon:c} : {error:'No coupon found with that code.'};
+  render();
+}
+function simulateScan(){
+  const scope = isStoreLocked() ? COUPONS.filter(c=>c.branch===currentUser.branch) : COUPONS;
+  const candidates = scope.filter(c=>effectiveStatus(c)==='active');
+  if(!candidates.length){ state.scanResult={error:'No active coupons available to simulate.'}; render(); return; }
+  const pick = candidates[Math.floor(Math.random()*candidates.length)];
+  state.scanCode = pick.code; state.scanResult = {coupon:pick}; render();
+}
+function doRedeem(id){
+  const c = COUPONS.find(x=>x.id===id); if(!c) return;
+  if(effectiveStatus(c)!=='active'){ showToast('This coupon is no longer active.'); render(); return; }
+  c.status='redeemed'; c.redeemedAt=new Date(); c.redeemedBy=state.scanBranch;
+  state.scanResult={coupon:c};
+  logAudit(`Redeemed ${c.code} (${c.typeLabel}) for ${c.holderName} at ${state.scanBranch}`);
+  showToast('Coupon redeemed.');
+  render();
+}
+
+/* ═══════════════════ ADMIN (OWNER) VIEW ═══════════════════ */
+function renderAdminView(){
+  const tabs=[['dashboard','Dashboard'],['campaigns','Coupon Campaigns'],['issue','Issue coupons'],['all','All coupons'],['access','Store access'],['employees','Employees'],['franchisees','Franchisees'],['branches','Branches'],['audit','Audit Log']];
+  return `<div class="role-tabs">${tabs.map(([id,label])=>`<button class="role-tab ${state.adminTab===id?'active':''}" onclick="setAdminTab('${id}')">${label}</button>`).join('')}</div>
+  ${state.adminTab==='dashboard'?renderAdminDashboard()
+    :state.adminTab==='campaigns'?renderAdminCampaigns()
+    :state.adminTab==='issue'?renderAdminIssue()
+    :state.adminTab==='all'?renderAdminAllCoupons()
+    :state.adminTab==='access'?renderAdminStoreAccess()
+    :state.adminTab==='employees'?renderAdminEmployees()
+    :state.adminTab==='franchisees'?renderAdminFranchisees()
+    :state.adminTab==='branches'?renderAdminBranches()
+    :renderAdminAudit()}`;
+}
+function setAdminTab(id){ state.adminTab=id; state.issueMsg=null; state.storeAccessMsg=null; state.empMsg=null; state.frMsg=null; state.campaignMsg=null; state.branchMsg=null; render(); }
+
+function renderAdminDashboard(){
+  const month = todayYYYYMM();
+  const monthCoupons = COUPONS.filter(c=>c.month===month);
+  const issued = monthCoupons.length, redeemed = monthCoupons.filter(c=>c.status==='redeemed').length;
+  const active = monthCoupons.filter(c=>effectiveStatus(c)==='active').length;
+  const rate = issued ? Math.round(redeemed/issued*100) : 0;
+  const byBranch={}; allBranches().forEach(b=>byBranch[b]={issued:0,redeemed:0});
+  monthCoupons.forEach(c=>{ if(!byBranch[c.branch]) byBranch[c.branch]={issued:0,redeemed:0}; byBranch[c.branch].issued++; if(c.status==='redeemed') byBranch[c.branch].redeemed++; });
+  const maxIssued = Math.max(...Object.values(byBranch).map(v=>v.issued),1);
+
+  const empCoupons = monthCoupons.filter(c=>c.holderKind!=='franchisee');
+  const frCoupons = monthCoupons.filter(c=>c.holderKind==='franchisee');
+  const empRedeemed = empCoupons.filter(c=>c.status==='redeemed').length;
+  const frRedeemed = frCoupons.filter(c=>c.status==='redeemed').length;
+
+  return `
+  <div class="grid-3">
+    <div class="stat-card"><div class="num">${EMPLOYEES.filter(e=>e.status!=='disabled').length}</div><div class="lbl">Active employee accounts</div></div>
+    <div class="stat-card"><div class="num">${FRANCHISEES.filter(f=>f.status!=='disabled').length}</div><div class="lbl">Active franchisee accounts</div></div>
+    <div class="stat-card"><div class="num">${rate}%</div><div class="lbl">Overall redemption rate</div></div>
+  </div>
+  <div class="grid-3" style="margin-top:16px;">
+    <div class="stat-card"><div class="num">${issued}</div><div class="lbl">Coupons issued this month</div></div>
+    <div class="stat-card"><div class="num">${active}</div><div class="lbl">Active now</div></div>
+    <div class="stat-card"><div class="num">${monthCoupons.filter(c=>effectiveStatus(c)==='expired').length}</div><div class="lbl">Expired unused</div></div>
+  </div>
+  <h2 class="section-title" style="margin-top:24px;">Employee vs Franchisee — this month</h2>
+  <div class="panel grid-2">
+    <div><div class="hint" style="margin:0 0 8px;font-weight:700;color:var(--paper);">Employee</div>
+      <div class="bar-row"><div class="bar-label">Issued</div><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><div class="bar-val">${empCoupons.length}</div></div>
+      <div class="bar-row"><div class="bar-label">Redeemed</div><div class="bar-track"><div class="bar-fill" style="width:${empCoupons.length?Math.round(empRedeemed/empCoupons.length*100):0}%"></div></div><div class="bar-val">${empRedeemed}</div></div>
+    </div>
+    <div><div class="hint" style="margin:0 0 8px;font-weight:700;color:var(--paper);">Franchisee</div>
+      <div class="bar-row"><div class="bar-label">Issued</div><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><div class="bar-val">${frCoupons.length}</div></div>
+      <div class="bar-row"><div class="bar-label">Redeemed</div><div class="bar-track"><div class="bar-fill" style="width:${frCoupons.length?Math.round(frRedeemed/frCoupons.length*100):0}%"></div></div><div class="bar-val">${frRedeemed}</div></div>
+    </div>
+  </div>
+  <h2 class="section-title" style="margin-top:24px;">Redemption by branch — this month</h2>
+  <div class="panel">${Object.keys(byBranch).map(b=>{ const v=byBranch[b]; const pct=Math.round(v.issued/maxIssued*100);
+    return `<div class="bar-row"><div class="bar-label">${b}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><div class="bar-val">${v.redeemed}/${v.issued}</div></div>`; }).join('')}</div>`;
+}
+
+/* ═══════════════════ COUPON CAMPAIGNS: eligibility, lifecycle, forms ═══════════════════ */
+function eligibleTargets(campaign){
+  const isFr = campaign.eligibleGroup==='all_franchisees' || campaign.eligibleGroup==='specific_franchisee';
+  let pool;
+  switch(campaign.eligibleGroup){
+    case 'employees_only': pool = EMPLOYEES.filter(e=>e.role==='employee' && e.status!=='disabled'); break;
+    case 'management': pool = EMPLOYEES.filter(e=>['manager','supervisor','admin'].includes(e.role) && e.status!=='disabled'); break;
+    case 'department': pool = EMPLOYEES.filter(e=>e.status!=='disabled' && (e.department||'').toLowerCase()===(campaign.eligibleDept||'').toLowerCase() && (campaign.eligibleDept||'')); break;
+    case 'position': pool = EMPLOYEES.filter(e=>e.status!=='disabled' && (e.position||'').toLowerCase()===(campaign.eligiblePosition||'').toLowerCase() && (campaign.eligiblePosition||'')); break;
+    case 'all_franchisees': pool = FRANCHISEES.filter(f=>f.status!=='disabled' && f.eligible); break;
+    case 'specific_franchisee': pool = FRANCHISEES.filter(f=>f.id===campaign.eligibleFrId && f.status!=='disabled' && f.eligible); break;
+    default: pool = EMPLOYEES.filter(e=>e.status!=='disabled'); // all_employees
+  }
+  const branchKey = isFr ? 'store' : 'branch';
+  if(campaign.applicableStores && campaign.applicableStores.length){
+    pool = pool.filter(t=>campaign.applicableStores.includes(t[branchKey]));
+  }
+  return { isFr, branchKey, pool };
+}
+function campaignStatusLabel(s){ return {draft:'Draft',pending:'Pending Approval',approved:'Approved',published:'Published',suspended:'Suspended',revoked:'Revoked'}[s] || s; }
+function campaignBadgeClass(s){ return {draft:'draft',pending:'pending',approved:'redeemed',published:'active',suspended:'expired',revoked:'expired'}[s] || 'draft'; }
+function eligibilitySummary(c){
+  const map = {all_employees:'All Employees', employees_only:'Employees only', management:'Management',
+    department:`Department: ${c.eligibleDept||'—'}`, position:`Position: ${c.eligiblePosition||'—'}`,
+    all_franchisees:'All Franchisees', specific_franchisee:`Franchisee: ${c.eligibleFrId||'—'}`};
+  return map[c.eligibleGroup] || c.eligibleGroup;
+}
+
+function renderAdminCampaigns(){
+  if(state.campaignView==='create') return renderCampaignForm();
+  const rows = CAMPAIGNS.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  return `
+  <div class="panel" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+    <div class="hint" style="margin:0;">Every campaign moves through Draft → Pending Approval → Approved → Published before it can be issued. Only Published campaigns are available in Issue Coupons.</div>
+    <button class="btn btn-gold" onclick="startNewCampaign()">+ New campaign</button>
+  </div>
+  ${state.campaignMsg ? `<div class="msg ok">${state.campaignMsg}</div>` : ''}
+  ${rows.length ? rows.map(c=>renderCampaignCard(c)).join('') : '<div class="panel empty-note">No campaigns yet. Click "+ New campaign" to create the first one.</div>'}`;
+}
+
+function renderCampaignCard(c){
+  const {pool} = eligibleTargets(c);
+  const issued = COUPONS.filter(x=>x.typeId===c.id).length;
+  const capText = c.totalQuantity ? `${issued} / ${c.totalQuantity} issued` : `${issued} issued (no cap)`;
+  const actions = {
+    draft:    `<button class="btn btn-ghost" onclick="editCampaign('${c.id}')">Edit</button><button class="btn btn-teal" onclick="campaignTransition('${c.id}','pending')">Submit for approval</button><button class="btn btn-ghost" onclick="deleteCampaign('${c.id}')">Delete</button>`,
+    pending:  `<button class="btn btn-teal" onclick="campaignTransition('${c.id}','approved')">Approve</button><button class="btn btn-ghost" onclick="campaignTransition('${c.id}','draft')">Send back to draft</button>`,
+    approved: `<button class="btn btn-gold" onclick="campaignTransition('${c.id}','published')">Publish</button><button class="btn btn-ghost" onclick="campaignTransition('${c.id}','draft')">Send back to draft</button>`,
+    published:`<button class="btn btn-ghost" onclick="campaignTransition('${c.id}','suspended')">Suspend</button><button class="btn btn-ghost" onclick="campaignTransition('${c.id}','revoked')">Revoke</button>`,
+    suspended:`<button class="btn btn-teal" onclick="campaignTransition('${c.id}','published')">Resume</button><button class="btn btn-ghost" onclick="campaignTransition('${c.id}','revoked')">Revoke</button>`,
+    revoked:  `<span class="hint" style="margin:0;">This campaign is revoked and can no longer be issued.</span>`,
+  }[c.status] || '';
+  return `
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
+      <div>
+        <div style="font-family:'Space Grotesk';font-weight:700;font-size:16px;">${c.name} <span class="badge ${campaignBadgeClass(c.status)}">${campaignStatusLabel(c.status)}</span></div>
+        <div class="hint" style="margin-top:2px;">${c.brand||'—'} · ${c.benefit||'—'} · Code prefix ${c.code}</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="hint" style="margin:0;">${eligibilitySummary(c)} · ${pool.length} eligible now</div>
+        <div class="hint" style="margin:0;">${capText}</div>
+      </div>
+    </div>
+    <div class="hint" style="margin-top:10px;">${fmtDate(c.startDate)} → ${fmtDate(c.expiryDate)} · Qty/person: ${c.qtyPerPerson} · Redemption limit: ${c.redemptionLimit}${c.hours?` · Hours: ${c.hours}`:''}${c.applicableStores&&c.applicableStores.length?` · Stores: ${c.applicableStores.join(', ')}`:' · All stores'}</div>
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">${actions}</div>
+  </div>`;
+}
+
+function startNewCampaign(){
+  state.editingCampaignId = null;
+  state.newCampaign = { name:'', code:'', description:'', brand:'TUBE Coffee', category:'', benefit:'', terms:'',
+    eligibleGroup:'all_employees', eligibleDept:'', eligiblePosition:'', eligibleFrId:'',
+    startDate:new Date().toISOString().slice(0,10), expiryDate:'', totalQuantity:'', qtyPerPerson:1, redemptionLimit:1,
+    applicableStores:[], hours:'' };
+  state.campaignView='create'; state.campaignMsg=null; render();
+}
+function editCampaign(id){
+  const c = CAMPAIGNS.find(x=>x.id===id); if(!c || c.status!=='draft') return;
+  state.editingCampaignId = id;
+  state.newCampaign = JSON.parse(JSON.stringify(c));
+  state.campaignView='create'; render();
+}
+function deleteCampaign(id){
+  const c = CAMPAIGNS.find(x=>x.id===id); if(!c || c.status!=='draft') return;
+  CAMPAIGNS = CAMPAIGNS.filter(x=>x.id!==id);
+  logAudit(`Deleted draft campaign "${c.name}"`);
+  state.campaignMsg = `Deleted draft "${c.name}".`;
+  render();
+}
+function campaignTransition(id, newStatus){
+  const c = CAMPAIGNS.find(x=>x.id===id); if(!c) return;
+  c.status = newStatus;
+  if(newStatus==='revoked'){
+    // Revoking immediately invalidates any still-active coupons issued under this campaign.
+    COUPONS.forEach(coup=>{ if(coup.typeId===id && coup.status==='active'){ coup.expiresAt = new Date(0); } });
+  }
+  logAudit(`Campaign "${c.name}" moved to ${campaignStatusLabel(newStatus)}`);
+  state.campaignMsg = `"${c.name}" is now ${campaignStatusLabel(newStatus)}.`;
+  render();
+}
+
+function renderCampaignForm(){
+  const nc = state.newCampaign;
+  const isEditing = !!state.editingCampaignId;
+  return `
+  <div class="panel" style="display:flex;justify-content:space-between;align-items:center;">
+    <div style="font-family:'Space Grotesk';font-weight:700;">${isEditing?'Edit draft campaign':'New coupon campaign'}</div>
+    <button class="btn btn-ghost" onclick="state.campaignView='list'; render();">← Back to campaigns</button>
+  </div>
+
+  <div class="panel">
+    <h2 class="section-title" style="margin-top:0;">Step 1 — Basic Information</h2>
+    <div class="grid-2">
+      <div class="field"><label>Coupon Name</label><input type="text" id="cf-name" value="${nc.name}" placeholder="e.g. TUBE Employee Privilege"/></div>
+      <div class="field"><label>Coupon Code (prefix)</label><input type="text" id="cf-code" value="${nc.code}" placeholder="e.g. PRIV20" style="text-transform:uppercase;"/></div>
+    </div>
+    <div class="field"><label>Description</label><input type="text" id="cf-desc" value="${nc.description}" placeholder="Short description"/></div>
+    <div class="grid-2">
+      <div class="field"><label>Brand</label><input type="text" id="cf-brand" value="${nc.brand}"/></div>
+      <div class="field"><label>Product / Category</label><input type="text" id="cf-category" value="${nc.category}" placeholder="e.g. Beverage"/></div>
+    </div>
+    <div class="field"><label>Discount / Benefit</label><input type="text" id="cf-benefit" value="${nc.benefit}" placeholder="e.g. 20% OFF selected beverages"/></div>
+    <div class="field"><label>Terms &amp; Conditions</label><input type="text" id="cf-terms" value="${nc.terms}" placeholder="e.g. One per transaction, not combinable with other offers"/></div>
+  </div>
+
+  <div class="panel">
+    <h2 class="section-title" style="margin-top:0;">Step 2 — Eligibility</h2>
+    <div class="field"><label>Eligible group</label><select id="cf-elig-group">
+      <option value="all_employees" ${nc.eligibleGroup==='all_employees'?'selected':''}>All Employees</option>
+      <option value="employees_only" ${nc.eligibleGroup==='employees_only'?'selected':''}>Employees only (excl. Managers/HR)</option>
+      <option value="management" ${nc.eligibleGroup==='management'?'selected':''}>Management (Manager/Store Admin/HR)</option>
+      <option value="department" ${nc.eligibleGroup==='department'?'selected':''}>Specific Department</option>
+      <option value="position" ${nc.eligibleGroup==='position'?'selected':''}>Specific Position</option>
+      <option value="all_franchisees" ${nc.eligibleGroup==='all_franchisees'?'selected':''}>All Franchisees</option>
+      <option value="specific_franchisee" ${nc.eligibleGroup==='specific_franchisee'?'selected':''}>Specific Franchisee</option>
+    </select></div>
+    ${nc.eligibleGroup==='department' ? `<div class="field" style="max-width:320px;"><label>Department</label><input type="text" id="cf-elig-dept" value="${nc.eligibleDept}" placeholder="e.g. Operations"/></div>` : ''}
+    ${nc.eligibleGroup==='position' ? `<div class="field" style="max-width:320px;"><label>Position</label><input type="text" id="cf-elig-position" value="${nc.eligiblePosition}" placeholder="e.g. Barista"/></div>` : ''}
+    ${nc.eligibleGroup==='specific_franchisee' ? `<div class="field" style="max-width:320px;"><label>Franchisee</label><select id="cf-elig-fr">${FRANCHISEES.map(f=>`<option value="${f.id}" ${f.id===nc.eligibleFrId?'selected':''}>${f.name} — ${f.id}</option>`).join('') || '<option value="">No franchisees yet</option>'}</select></div>` : ''}
+  </div>
+
+  <div class="panel">
+    <h2 class="section-title" style="margin-top:0;">Step 3 — Coupon Rules</h2>
+    <div class="grid-2">
+      <div class="field"><label>Start date</label><input type="date" id="cf-start" value="${nc.startDate}"/></div>
+      <div class="field"><label>Expiry date</label><input type="date" id="cf-expiry" value="${nc.expiryDate}"/></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Total quantity (blank = unlimited)</label><input type="number" id="cf-total-qty" min="1" value="${nc.totalQuantity}"/></div>
+      <div class="field"><label>Quantity per person</label><input type="number" id="cf-qty-person" min="1" value="${nc.qtyPerPerson}"/></div>
+    </div>
+    <div class="field" style="max-width:320px;"><label>Redemption limit (uses per coupon)</label><input type="number" id="cf-redemption-limit" min="1" value="${nc.redemptionLimit}"/></div>
+    <div class="field"><label>Applicable stores (none checked = all stores)</label><div class="checkbox-list">
+      ${allBranches().map(b=>`<label class="checkbox-item"><input type="checkbox" data-store="${b}" ${nc.applicableStores.includes(b)?'checked':''}/> ${b}</label>`).join('') || '<div class="empty-note">No stores yet.</div>'}
+    </div></div>
+    <div class="field"><label>Days / hours available (informational)</label><input type="text" id="cf-hours" value="${nc.hours}" placeholder="e.g. Mon–Fri, 9am–9pm"/></div>
+  </div>
+
+  <div class="panel">
+    <h2 class="section-title" style="margin-top:0;">Step 4 — Publish</h2>
+    <div class="hint">Save as Draft to keep working on it later, or submit it for approval now. Approving and Publishing happen from the campaign list once it's in Pending Approval.</div>
+    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-ghost" onclick="doSaveCampaign('draft')">Save as Draft</button>
+      <button class="btn btn-gold" onclick="doSaveCampaign('pending')">Submit for Approval</button>
+    </div>
+    ${state.campaignMsg ? `<div class="msg err">${state.campaignMsg}</div>` : ''}
+  </div>`;
+}
+
+function doSaveCampaign(intendedStatus){
+  const nc = state.newCampaign;
+  nc.name = document.getElementById('cf-name').value.trim();
+  nc.code = document.getElementById('cf-code').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+  nc.description = document.getElementById('cf-desc').value.trim();
+  nc.brand = document.getElementById('cf-brand').value.trim();
+  nc.category = document.getElementById('cf-category').value.trim();
+  nc.benefit = document.getElementById('cf-benefit').value.trim();
+  nc.terms = document.getElementById('cf-terms').value.trim();
+  nc.eligibleGroup = document.getElementById('cf-elig-group').value;
+  const deptEl=document.getElementById('cf-elig-dept'), posEl=document.getElementById('cf-elig-position'), frEl=document.getElementById('cf-elig-fr');
+  if(deptEl) nc.eligibleDept = deptEl.value.trim();
+  if(posEl) nc.eligiblePosition = posEl.value.trim();
+  if(frEl) nc.eligibleFrId = frEl.value;
+  nc.startDate = document.getElementById('cf-start').value;
+  nc.expiryDate = document.getElementById('cf-expiry').value;
+  nc.totalQuantity = document.getElementById('cf-total-qty').value ? parseInt(document.getElementById('cf-total-qty').value,10) : '';
+  nc.qtyPerPerson = Math.max(1, parseInt(document.getElementById('cf-qty-person').value,10) || 1);
+  nc.redemptionLimit = Math.max(1, parseInt(document.getElementById('cf-redemption-limit').value,10) || 1);
+  nc.hours = document.getElementById('cf-hours').value.trim();
+  nc.applicableStores = Array.from(document.querySelectorAll('[data-store]:checked')).map(el=>el.getAttribute('data-store'));
+
+  if(!nc.name || !nc.code || !nc.benefit){ state.campaignMsg='Fill in at least Coupon Name, Coupon Code and Benefit.'; render(); return; }
+  if(!nc.startDate || !nc.expiryDate){ state.campaignMsg='Set both a start date and an expiry date.'; render(); return; }
+  if(new Date(nc.expiryDate) < new Date(nc.startDate)){ state.campaignMsg='Expiry date must be on or after the start date.'; render(); return; }
+  if(nc.eligibleGroup==='department' && !nc.eligibleDept){ state.campaignMsg='Enter a department for department-based eligibility.'; render(); return; }
+  if(nc.eligibleGroup==='position' && !nc.eligiblePosition){ state.campaignMsg='Enter a position for position-based eligibility.'; render(); return; }
+  if(nc.eligibleGroup==='specific_franchisee' && !nc.eligibleFrId){ state.campaignMsg='Choose a franchisee for franchisee-specific eligibility.'; render(); return; }
+  if(!state.editingCampaignId && CAMPAIGNS.some(c=>c.code===nc.code)){ state.campaignMsg=`Coupon Code "${nc.code}" is already used by another campaign.`; render(); return; }
+
+  if(state.editingCampaignId){
+    const idx = CAMPAIGNS.findIndex(c=>c.id===state.editingCampaignId);
+    CAMPAIGNS[idx] = { ...CAMPAIGNS[idx], ...nc, label:nc.name, status:intendedStatus };
+  } else {
+    CAMPAIGNS.push({ id:'CMP'+(campaignSeq++), ...nc, label:nc.name, status:intendedStatus, createdAt:Date.now(), createdBy:currentUser.id });
+  }
+  logAudit(`Campaign "${nc.name}" saved as ${campaignStatusLabel(intendedStatus)}${state.editingCampaignId?' (edited)':' (new)'}`);
+  state.campaignView='list'; state.campaignMsg=`"${nc.name}" saved as ${campaignStatusLabel(intendedStatus)}.`; state.editingCampaignId=null;
+  render();
+}
+
+function renderAdminIssue(){
+  const published = publishedCampaigns();
+  if(!published.length){
+    return `<div class="panel">
+      <div class="hint">No campaigns are published yet. Go to <strong>Coupon Campaigns</strong> to create one and take it through Draft → Pending Approval → Approved → Published — it'll show up here once it's live.</div>
+    </div>`;
+  }
+  if(!state.issueType || !published.some(c=>c.id===state.issueType)) state.issueType = published[0].id;
+  const campaign = typeById(state.issueType);
+  if(!state.issueQty || state.issueQty<1) state.issueQty = campaign.qtyPerPerson || 1;
+  if(!state.issueExpiry) state.issueExpiry = campaign.expiryDate || '';
+
+  const {isFr, branchKey, pool} = eligibleTargets(campaign);
+  const issuedSoFar = COUPONS.filter(c=>c.typeId===campaign.id).length;
+  const remainingCap = campaign.totalQuantity ? Math.max(0, campaign.totalQuantity - issuedSoFar) : null;
+
+  const typeOptions = published.map(t=>`<option value="${t.id}" ${t.id===state.issueType?'selected':''}>${t.name} (${campaignStatusLabel(t.status)})</option>`).join('');
+  const storeOptions = [...new Set(pool.map(t=>t[branchKey]))].sort().map(b=>`<option value="${b}" ${b===state.issueBranch?'selected':''}>${b}</option>`).join('');
+  const scopeCount = state.issueScope==='all' ? pool.length
+    : state.issueScope==='branch' ? pool.filter(t=>t[branchKey]===state.issueBranch).length
+    : state.issueScope==='select' ? state.issueSelected.length : 0;
+  const wouldIssue = scopeCount*state.issueQty;
+  const overCap = remainingCap!==null && wouldIssue>remainingCap;
+
+  if(state.issueScope==='upload') return renderIssueUpload(campaign);
+
+  return `
+  <div class="panel">
+    <div class="field"><label>Campaign</label><select id="issue-type">${typeOptions}</select></div>
+    <div class="hint">${eligibilitySummary(campaign)} · ${pool.length} eligible ${isFr?'franchisee':'employee'}${pool.length===1?'':'s'}${remainingCap!==null?` · ${remainingCap} of ${campaign.totalQuantity} remaining under this campaign's cap`:''}</div>
+    <div class="grid-2" style="margin-top:14px;">
+      <div class="field"><label>Quantity per ${isFr?'franchisee':'person'}</label><input type="number" id="issue-qty" min="1" max="30" value="${state.issueQty}"/></div>
+      <div class="field"><label>Expiry date</label><input type="date" id="issue-expiry" value="${state.issueExpiry}"/></div>
+    </div>
+    <div class="field"><label>Send to</label><select id="issue-scope">
+      <option value="all" ${state.issueScope==='all'?'selected':''}>All eligible ${isFr?'franchisees':'employees'}</option>
+      <option value="branch" ${state.issueScope==='branch'?'selected':''}>One ${isFr?'store':'branch'}</option>
+      <option value="select" ${state.issueScope==='select'?'selected':''}>Select individually</option>
+      ${isFr?'':`<option value="upload" ${state.issueScope==='upload'?'selected':''}>Upload from Excel (different amount per employee)</option>`}
+    </select></div>
+    ${state.issueScope==='branch' ? `<div class="field"><label>${isFr?'Store':'Branch'}</label><select id="issue-branch">${storeOptions}</select></div>` : ''}
+    ${state.issueScope==='select' ? `<div class="field"><label>${isFr?'Franchisees':'Employees'}</label><div class="checkbox-list">
+      ${pool.map(t=>`<label class="checkbox-item"><input type="checkbox" data-emp="${t.id}" ${state.issueSelected.includes(t.id)?'checked':''}/> ${t.name} — ${t.id}, ${t[branchKey]}</label>`).join('') || '<div class="empty-note">No one is eligible for this campaign.</div>'}
+    </div></div>` : ''}
+    <div class="hint">This will issue <strong>${wouldIssue}</strong> coupon${wouldIssue===1?'':'s'} to <strong>${scopeCount}</strong> ${isFr?'franchisee':'person'}${scopeCount===1?'':'s'}.${overCap?` <span style="color:var(--danger);font-weight:700;">That's over the campaign's remaining cap of ${remainingCap}.</span>`:''}</div>
+    <div style="margin-top:14px;"><button class="btn btn-gold" ${overCap||!scopeCount?'disabled':''} onclick="doIssueCoupons()">Issue coupons</button></div>
+    ${state.issueMsg ? `<div class="msg ok">${state.issueMsg}</div>` : ''}
+  </div>`;
+}
+
+/* ---- Excel-driven issuing: HR sets a different coupon amount per employee, within a chosen campaign ---- */
+function renderIssueUpload(campaign){
+  const rows = state.issueUploadRows || [];
+  const valid = rows.filter(r=>r.ok);
+  const totalCoupons = valid.reduce((s,r)=>s+r.qty,0);
+  return `
+  <div class="panel">
+    <div class="field"><label>Campaign</label><select id="issue-type">${publishedCampaigns().map(t=>`<option value="${t.id}" ${t.id===campaign.id?'selected':''}>${t.name}</option>`).join('')}</select></div>
+    <div class="field"><label>Send to</label><select id="issue-scope">
+      <option value="all">All eligible employees</option>
+      <option value="branch">One branch</option>
+      <option value="select">Select individually</option>
+      <option value="upload" selected>Upload from Excel (different amount per employee)</option>
+    </select></div>
+    <div class="hint">Upload a spreadsheet with one row per employee — each row sets their own coupon amount for the <strong>${campaign.name}</strong> campaign. Only employees eligible for this campaign will be accepted.</div>
+    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+      <button class="btn btn-ghost" onclick="downloadIssueTemplate()">Download template (.xlsx)</button>
+      <label class="btn btn-teal" style="cursor:pointer;">Choose file<input type="file" id="issue-file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="handleIssueFileUpload(event)"></label>
+    </div>
+    <div class="hint">Columns expected: <strong>Employee ID</strong>, <strong>Coupons</strong> (amount for that employee), and optionally <strong>Expiry</strong> (defaults to ${campaign.expiryDate || 'the campaign expiry'}).</div>
+    ${state.issueUploadMsg ? `<div class="msg ${state.issueUploadMsg.startsWith('Issued')?'ok':'err'}">${state.issueUploadMsg}</div>` : ''}
+  </div>
+  ${rows.length ? `
+  <div class="panel">
+    <div class="grid-3">
+      <div class="stat-card"><div class="num">${rows.length}</div><div class="lbl">Rows read</div></div>
+      <div class="stat-card"><div class="num">${valid.length}</div><div class="lbl">Valid rows</div></div>
+      <div class="stat-card"><div class="num">${totalCoupons}</div><div class="lbl">Coupons to issue</div></div>
+    </div>
+    <div style="margin-top:14px;"><button class="btn btn-gold" ${valid.length?'':'disabled'} onclick="doIssueFromUpload()">Issue ${totalCoupons} coupon${totalCoupons===1?'':'s'} to ${valid.length} employee${valid.length===1?'':'s'}</button></div>
+  </div>
+  <div class="panel table-wrap">
+    <table><thead><tr><th>Row</th><th>Employee ID</th><th>Name</th><th>Coupons</th><th>Status</th></tr></thead>
+    <tbody>${rows.map((r,i)=>`<tr><td>${i+2}</td><td style="font-family:'JetBrains Mono';">${r.empId||'—'}</td><td>${r.name||'—'}</td><td>${r.qty||'—'}</td>
+      <td>${r.ok ? '<span class="badge active">ok</span>' : `<span class="badge expired">${r.reason}</span>`}</td></tr>`).join('')}</tbody></table>
+  </div>` : ''}`;
+}
+
+function downloadIssueTemplate(){
+  const campaign = typeById(state.issueType);
+  const {pool} = eligibleTargets(campaign);
+  const sample = pool.slice(0,3);
+  const data = sample.length ? sample.map((e,i)=>({ 'Employee ID':e.id, 'Coupons':(campaign.qtyPerPerson||1)+i, 'Expiry':'' }))
+    : [{ 'Employee ID':'TUB-00005', 'Coupons':campaign.qtyPerPerson||1, 'Expiry':'' }];
+  const ws = XLSX.utils.json_to_sheet(data);
+  ws['!cols'] = autoFitColsObj(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Coupons');
+  XLSX.writeFile(wb, 'coupon-issue-template.xlsx');
+}
+
+function handleIssueFileUpload(evt){
+  const file = evt.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const wb = XLSX.read(e.target.result, {type:'array', cellDates:true});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const raw = XLSX.utils.sheet_to_json(sheet, {defval:''});
+      const campaign = typeById(state.issueType);
+      state.issueUploadRows = raw.map(row=>parseIssueRow(row, campaign));
+      state.issueUploadMsg = null;
+    }catch(err){ state.issueUploadMsg = 'Could not read that file: '+(err.message||'unknown error'); state.issueUploadRows=[]; }
+    render();
+  };
+  reader.readAsArrayBuffer(file);
+}
+function normKeys(row){
+  const out={}; Object.keys(row).forEach(k=>{ out[k.trim().toLowerCase()] = row[k]; }); return out;
+}
+function parseIssueRow(rawRow, campaign){
+  const row = normKeys(rawRow);
+  const empId = String(row['employee id'] || row['empid'] || row['id'] || '').trim().toUpperCase();
+  const qtyRaw = row['coupons'] || row['quantity'] || row['qty'] || row['amount'];
+  const expiryRaw = String(row['expiry'] || row['expires'] || '').trim();
+
+  if(!empId) return {ok:false, reason:'Missing Employee ID', empId, qty:0};
+  const emp = EMPLOYEES.find(e=>e.id===empId);
+  if(!emp) return {ok:false, reason:'Employee ID not found', empId, qty:0};
+  if(emp.status==='disabled') return {ok:false, reason:'Account disabled', empId, name:emp.name, qty:0};
+  const {pool} = eligibleTargets(campaign);
+  if(!pool.some(p=>p.id===empId)) return {ok:false, reason:'Not eligible for this campaign', empId, name:emp.name, qty:0};
+
+  const qty = parseInt(qtyRaw,10);
+  if(!qty || qty<1) return {ok:false, reason:'Invalid coupon amount', empId, name:emp.name, qty:0};
+
+  let expiresAt;
+  if(expiryRaw){
+    const d = new Date(expiryRaw);
+    if(isNaN(d.getTime())) return {ok:false, reason:`Unreadable expiry date "${expiryRaw}"`, empId, name:emp.name, qty};
+    expiresAt = d;
+  } else {
+    expiresAt = new Date((campaign.expiryDate || state.issueExpiry) + 'T23:59:59');
+  }
+
+  return { ok:true, empId, name:emp.name, branch:emp.branch, qty, expiresAt };
+}
+function doIssueFromUpload(){
+  const campaign = typeById(state.issueType);
+  const rows = (state.issueUploadRows||[]).filter(r=>r.ok);
+  if(!rows.length){ state.issueUploadMsg='No valid rows to issue.'; render(); return; }
+  const wouldIssue = rows.reduce((s,r)=>s+r.qty,0);
+  const issuedSoFar = COUPONS.filter(c=>c.typeId===campaign.id).length;
+  if(campaign.totalQuantity && issuedSoFar+wouldIssue>campaign.totalQuantity){
+    state.issueUploadMsg = `That would issue ${wouldIssue}, but only ${Math.max(0,campaign.totalQuantity-issuedSoFar)} remain under this campaign's cap.`;
+    render(); return;
+  }
+  const month = todayYYYYMM();
+  let count=0;
+  rows.forEach(r=>{
+    for(let i=0;i<r.qty;i++){
+      COUPONS.push({ id:'C'+seq++, code:randCode(campaign.code), holderId:r.empId, holderName:r.name, branch:r.branch, holderKind:'employee',
+        typeId:campaign.id, typeLabel:campaign.name, month, issuedAt:new Date(), expiresAt:r.expiresAt, status:'active', redeemedAt:null, redeemedBy:null });
+      count++;
+    }
+  });
+  logAudit(`Issued ${count} "${campaign.name}" coupon(s) to ${rows.length} employee(s) via Excel upload`);
+  state.issueUploadMsg = `Issued ${count} coupon${count===1?'':'s'} to ${rows.length} employee${rows.length===1?'':'s'} from the uploaded list.`;
+  state.issueUploadRows = [];
+  render();
+}
+function doIssueCoupons(){
+  const campaign = typeById(state.issueType);
+  const {isFr, branchKey, pool} = eligibleTargets(campaign);
+  let targets = state.issueScope==='all' ? pool
+    : state.issueScope==='branch' ? pool.filter(t=>t[branchKey]===state.issueBranch)
+    : pool.filter(t=>state.issueSelected.includes(t.id));
+  if(!targets.length){ state.issueMsg=`Select at least one ${isFr?'franchisee':'employee'} before issuing.`; render(); return; }
+  const qty = Math.max(1,state.issueQty||1), month = todayYYYYMM();
+  const issuedSoFar = COUPONS.filter(c=>c.typeId===campaign.id).length;
+  if(campaign.totalQuantity && issuedSoFar+targets.length*qty>campaign.totalQuantity){
+    state.issueMsg = `That would issue ${targets.length*qty}, but only ${Math.max(0,campaign.totalQuantity-issuedSoFar)} remain under this campaign's cap.`;
+    render(); return;
+  }
+  const expiresAt = new Date((state.issueExpiry||campaign.expiryDate)+'T23:59:59');
+  let count=0;
+  targets.forEach(t=>{ for(let i=0;i<qty;i++){
+    COUPONS.push({ id:'C'+seq++, code:randCode(campaign.code), holderId:t.id, holderName:t.name, branch:t[branchKey], holderKind:isFr?'franchisee':'employee',
+      typeId:campaign.id, typeLabel:campaign.name, month, issuedAt:new Date(), expiresAt, status:'active', redeemedAt:null, redeemedBy:null });
+    count++;
+  }});
+  logAudit(`Issued ${count} "${campaign.name}" coupon(s) to ${targets.length} ${isFr?'franchisee':'employee'}(s)`);
+  state.issueMsg = `Issued ${count} "${campaign.name}" coupon${count===1?'':'s'} to ${targets.length} ${isFr?'franchisee':'employee'}${targets.length===1?'':'s'}.`;
+  render();
+}
+
+function renderAdminAllCoupons(){
+  let list = COUPONS;
+  if(state.filterMonthAdmin!=='all') list = list.filter(c=>c.month===state.filterMonthAdmin);
+  if(state.filterStatus!=='all') list = list.filter(c=>effectiveStatus(c)===state.filterStatus);
+  if(state.filterAudience && state.filterAudience!=='all') list = list.filter(c=>(c.holderKind||'employee')===state.filterAudience);
+  if(state.filterSearch.trim()){
+    const q = state.filterSearch.trim().toLowerCase();
+    list = list.filter(c=>c.code.toLowerCase().includes(q) || c.holderName.toLowerCase().includes(q));
+  }
+  list = list.slice().sort((a,b)=>new Date(b.issuedAt)-new Date(a.issuedAt));
+  const months = [...new Set(COUPONS.map(c=>c.month))].sort().reverse();
+  return `
+  <div class="panel">
+    <div class="grid-3">
+      <div class="field"><label>Month</label><select id="filter-month-admin">
+        <option value="all" ${state.filterMonthAdmin==='all'?'selected':''}>All months</option>
+        ${months.map(m=>`<option value="${m}" ${state.filterMonthAdmin===m?'selected':''}>${m}</option>`).join('')}
+      </select></div>
+      <div class="field"><label>Status</label><select id="filter-status">
+        <option value="all" ${state.filterStatus==='all'?'selected':''}>All</option>
+        <option value="active" ${state.filterStatus==='active'?'selected':''}>Active</option>
+        <option value="redeemed" ${state.filterStatus==='redeemed'?'selected':''}>Redeemed</option>
+        <option value="expired" ${state.filterStatus==='expired'?'selected':''}>Expired</option>
+      </select></div>
+      <div class="field"><label>Audience</label><select id="filter-audience">
+        <option value="all" ${(!state.filterAudience||state.filterAudience==='all')?'selected':''}>All</option>
+        <option value="employee" ${state.filterAudience==='employee'?'selected':''}>Employee</option>
+        <option value="franchisee" ${state.filterAudience==='franchisee'?'selected':''}>Franchisee</option>
+      </select></div>
+    </div>
+    <div class="field" style="margin-top:14px;"><label>Search holder or code</label><input type="text" id="filter-search" value="${state.filterSearch}" placeholder="Search..."/></div>
+  </div>
+  <div class="panel table-wrap">
+    <table><thead><tr><th>Holder</th><th>Type</th><th>Branch/Store</th><th>Coupon</th><th>Code</th><th>Status</th><th>Issued</th><th>Expires</th></tr></thead>
+    <tbody>${list.map(c=>{ const st=effectiveStatus(c); const isFr=c.holderKind==='franchisee';
+      return `<tr><td>${c.holderName}</td><td>${isFr?'Franchisee':'Employee'}</td><td>${c.branch}</td><td>${c.typeLabel}</td><td style="font-family:'JetBrains Mono';">${c.code}</td><td><span class="badge ${st}">${st}</span></td><td>${fmtDate(c.issuedAt)}</td><td>${fmtDate(c.expiresAt)}</td></tr>`;
+    }).join('')}</tbody></table>
+    ${list.length?'':'<div class="empty-note">No coupons match these filters.</div>'}
+  </div>
+  <div class="panel">
+    <h2 class="section-title" style="margin-top:0;">Data cleanup</h2>
+    <div class="hint">Always downloads a full Excel backup first, then asks you to confirm before removing anything older than the cutoff date from this session. This cannot be undone.</div>
+    <div class="grid-2" style="margin-top:12px;">
+      <div class="field"><label>Cutoff date (remove everything before this)</label><input type="date" id="cleanup-cutoff"/></div>
+      <div class="field" style="display:flex;align-items:flex-end;gap:16px;">
+        <label class="checkbox-item"><input type="checkbox" id="cleanup-redeemed" checked/> Redeemed coupons</label>
+        <label class="checkbox-item"><input type="checkbox" id="cleanup-expired" checked/> Expired coupons</label>
+      </div>
+    </div>
+    <button class="btn btn-teal" onclick="exportAndClearOldCoupons()">Export &amp; clean up</button>
+  </div>`;
+}
+
+// ── DATA CLEANUP (export old coupons to Excel, then remove from this session) ──
+// Human Resources only, reached via the All Coupons tab. Always downloads a full
+// backup FIRST, then requires an explicit confirm() before removing anything —
+// deletion never happens silently. (No Firestore here, so no batch-size limit to
+// worry about — this just filters the in-memory COUPONS array.)
+function exportAndClearOldCoupons(){
+  const cutoffEl = document.getElementById('cleanup-cutoff');
+  const cutoff = cutoffEl ? cutoffEl.value : '';
+  if(!cutoff){ showToast('Pick a cutoff date first — everything before this date will be removed.'); return; }
+  const doRedeemed = document.getElementById('cleanup-redeemed').checked;
+  const doExpired = document.getElementById('cleanup-expired').checked;
+  if(!doRedeemed && !doExpired){ showToast('Select at least one status to clean up.'); return; }
+
+  const cutoffDate = new Date(cutoff);
+  const targets = COUPONS.filter(c=>{
+    const st = effectiveStatus(c);
+    if(doRedeemed && st==='redeemed' && c.redeemedAt && new Date(c.redeemedAt) < cutoffDate) return true;
+    if(doExpired && st==='expired' && new Date(c.expiresAt) < cutoffDate) return true;
+    return false;
+  });
+  if(!targets.length){ showToast(`Nothing found before ${fmtDate(cutoff)} for the selected type(s). Nothing was removed.`); return; }
+  if(typeof XLSX==='undefined'){ showToast('Excel export library failed to load — check your internet connection. Cancelled, nothing removed.'); return; }
+
+  // 1) Always back up first.
+  const headers=['Holder','Type','Branch/Store','Campaign','Code','Status','Issued','Expires','Redeemed'];
+  const rows=[headers];
+  targets.forEach(c=>{
+    rows.push([c.holderName, c.holderKind==='franchisee'?'Franchisee':'Employee', c.branch, c.typeLabel, c.code, effectiveStatus(c), fmtDate(c.issuedAt), fmtDate(c.expiresAt), c.redeemedAt?fmtDate(c.redeemedAt):'']);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = autoFitCols(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Old Coupons');
+  XLSX.writeFile(wb, `TUBE_Coffee_Coupons_Archive_Before_${cutoff}.xlsx`);
+
+  // 2) Only after the backup file has been handed to the browser, ask to confirm removal.
+  const ok = confirm(`Backup downloaded to your device.\n\nNow remove ${targets.length} coupon(s) dated before ${fmtDate(cutoff)} from this session?\n(${targets.filter(c=>effectiveStatus(c)==='redeemed').length} redeemed, ${targets.filter(c=>effectiveStatus(c)==='expired').length} expired)\n\nThis CANNOT be undone. Only continue if you've saved the file that just downloaded.`);
+  if(!ok){ showToast('Cleanup cancelled — the backup file was still downloaded.'); return; }
+
+  // 3) Remove from the in-memory list.
+  const targetIds = new Set(targets.map(c=>c.id));
+  COUPONS = COUPONS.filter(c=>!targetIds.has(c.id));
+  showToast(`Removed ${targets.length} old coupon(s). Backup saved to your Downloads.`);
+  render();
+}
+
+function renderAdminStoreAccess(){
+  const managers = EMPLOYEES.filter(e=>e.role==='manager');
+  return `
+  <div class="panel">
+    <div class="hint">Store Admins are always locked to their own store. Managers are too, unless you switch on cross-store access here.</div>
+    ${state.storeAccessMsg ? `<div class="msg ok" style="margin-top:10px;">${state.storeAccessMsg}</div>` : ''}
+  </div>
+  <div class="panel table-wrap">
+    ${managers.length ? `<table><thead><tr><th>Name</th><th>ID</th><th>Home store</th><th>Cross-store access</th><th></th></tr></thead><tbody>
+      ${managers.map(u=>`<tr><td>${u.name}</td><td style="font-family:'JetBrains Mono';">${u.id}</td><td>${u.branch}</td>
+        <td><span class="badge ${u.crossStoreAccess?'active':'expired'}">${u.crossStoreAccess?'Enabled':'Off'}</span></td>
+        <td><button class="btn ${u.crossStoreAccess?'btn-ghost':'btn-teal'}" onclick="setCrossStoreAccess('${u.id}', ${!u.crossStoreAccess})">${u.crossStoreAccess?'Revoke':'Grant'}</button></td>
+      </tr>`).join('')}</tbody></table>` : '<div class="empty-note">No Manager accounts yet.</div>'}
+  </div>`;
+}
+function setCrossStoreAccess(id, enable){
+  const u = EMPLOYEES.find(e=>e.id===id); if(!u) return;
+  u.crossStoreAccess = enable;
+  logAudit(`${enable?'Granted':'Revoked'} cross-store access for ${u.name} (${u.id})`);
+  state.storeAccessMsg = `${u.name} ${enable?'can now see and redeem for all stores.':'is back to their own store only.'}`;
+  render();
+}
+
+function renderAdminEmployees(){
+  if(!state.editingEmpId && !state.newEmp.id) state.newEmp.id = nextAvailableTubId() || '';
+  const isEditing = !!state.editingEmpId;
+  const rows = EMPLOYEES.slice().sort((a,b)=>a.id.localeCompare(b.id));
+  const upRows = state.empUploadRows || [];
+  const upValid = upRows.filter(r=>r.ok);
+  return `
+  <div class="panel">
+    <h2 class="section-title" style="margin-top:0;">Bulk import (Excel)</h2>
+    <div class="hint">For onboarding many employees at once — one row per person. Each person's password is their date of birth as DDMMYYYY, generated automatically.</div>
+    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
+      <button class="btn btn-ghost" onclick="downloadEmployeeTemplate()">Download template (.xlsx)</button>
+      <label class="btn btn-teal" style="cursor:pointer;">Choose file<input type="file" id="emp-file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="handleEmployeeFileUpload(event)"></label>
+    </div>
+    <div class="hint">Columns expected: <strong>Employee ID</strong> (TUB-00001–TUB-10000), <strong>Name</strong>, <strong>Role</strong> (Employee / Store Admin / Manager / Human Resources), <strong>Branch</strong>, <strong>Date of Birth</strong> — this becomes their password as DDMMYYYY.</div>
+    ${state.empUploadMsg ? `<div class="msg ${state.empUploadMsg.startsWith('Imported')?'ok':'err'}">${state.empUploadMsg}</div>` : ''}
+    ${upRows.length ? `
+      <div class="grid-3" style="margin-top:14px;">
+        <div class="stat-card"><div class="num">${upRows.length}</div><div class="lbl">Rows read</div></div>
+        <div class="stat-card"><div class="num">${upValid.length}</div><div class="lbl">Ready to import</div></div>
+        <div class="stat-card"><div class="num">${upRows.length-upValid.length}</div><div class="lbl">Skipped (errors)</div></div>
+      </div>
+      <div style="margin-top:14px;"><button class="btn btn-gold" ${upValid.length?'':'disabled'} onclick="doImportEmployees()">Import ${upValid.length} account${upValid.length===1?'':'s'}</button></div>
+      <div class="table-wrap" style="margin-top:14px;">
+        <table><thead><tr><th>Row</th><th>ID</th><th>Name</th><th>Role</th><th>Branch</th><th>Status</th></tr></thead>
+        <tbody>${upRows.map((r,i)=>`<tr><td>${i+2}</td><td style="font-family:'JetBrains Mono';">${r.id||'—'}</td><td>${r.name||'—'}</td><td>${r.roleLabel||'—'}</td><td>${r.branch||'—'}</td>
+          <td>${r.ok?'<span class="badge active">ok</span>':`<span class="badge expired">${r.reason}</span>`}</td></tr>`).join('')}</tbody></table>
+      </div>` : ''}
+  </div>
+  <div class="panel">
+    <h2 class="section-title" style="margin-top:0;">${isEditing?'Edit account':'Add one account'}</h2>
+    <div class="grid-2">
+      <div class="field"><label>Employee ID</label><input type="text" id="ne-id" value="${state.newEmp.id}" placeholder="TUB-00001" ${isEditing?'readonly style="opacity:0.6;"':''}/></div>
+      <div class="field"><label>Full name</label><input type="text" id="ne-name" value="${state.newEmp.name}" placeholder="Full name"/></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Date of birth</label><input type="date" id="ne-dob" value="${state.newEmp.dob}"/></div>
+      <div class="field"><label>Role</label><select id="ne-role">
+        <option value="employee" ${state.newEmp.role==='employee'?'selected':''}>Employee</option>
+        <option value="supervisor" ${state.newEmp.role==='supervisor'?'selected':''}>Store Admin</option>
+        <option value="manager" ${state.newEmp.role==='manager'?'selected':''}>Manager</option>
+        <option value="admin" ${state.newEmp.role==='admin'?'selected':''}>Human Resources</option>
+      </select></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Department (optional)</label><input type="text" id="ne-dept" value="${state.newEmp.department}" placeholder="e.g. Operations"/></div>
+      <div class="field"><label>Position (optional)</label><input type="text" id="ne-position" value="${state.newEmp.position}" placeholder="e.g. Barista"/></div>
+    </div>
+    <div class="field" style="max-width:320px;"><label>Branch</label><select id="ne-branch">${allBranches().map(b=>`<option value="${b}" ${b===state.newEmp.branch?'selected':''}>${b}</option>`).join('')}</select></div>
+    <div class="hint">Password is generated automatically from the date of birth (DDMMYYYY).${state.newEmp.dob ? ` ${isEditing?'Updated password will be':'For this account it will be'} <strong style="color:var(--paper);font-family:'JetBrains Mono';">${isoDobToPassword(state.newEmp.dob)}</strong>.` : ''} Department/Position are used to target coupon campaigns by eligibility.</div>
+    <div style="margin-top:10px;display:flex;gap:10px;"><button class="btn btn-gold" onclick="doAddEmployee()">${isEditing?'Save changes':'Add account'}</button>${isEditing?`<button class="btn btn-ghost" onclick="cancelEditEmployee()">Cancel</button>`:''}</div>
+    ${state.empMsg ? `<div class="msg ${state.empMsg.startsWith('Added')||state.empMsg.startsWith('Updated')?'ok':'err'}">${state.empMsg}</div>` : ''}
+  </div>
+  <div class="panel table-wrap">
+    <table><thead><tr><th>ID</th><th>Name</th><th>Role</th><th>Branch</th><th>Dept</th><th>Position</th><th>DOB</th><th>Status</th><th></th></tr></thead>
+    <tbody>${rows.map(u=>`<tr><td style="font-family:'JetBrains Mono';">${esc(u.id)}</td><td>${esc(u.name)}</td><td>${roleLabel(u.role)}</td><td>${esc(u.branch)}</td><td>${esc(u.department)||'—'}</td><td>${esc(u.position)||'—'}</td><td>${u.dob||'—'}</td>
+      <td><span class="badge ${u.status==='disabled'?'expired':'active'}">${u.status}</span></td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn-ghost" onclick="editEmployeeStart('${u.id}')">Edit</button>
+        ${u.id===currentUser.id?'':`<button class="btn btn-ghost" onclick="toggleEmpStatus('${u.id}')">${u.status==='disabled'?'Enable':'Disable'}</button><button class="btn btn-ghost" onclick="removeEmployee('${u.id}')">Remove</button>`}
+      </td>
+    </tr>`).join('')}</tbody></table>
+  </div>`;
+}
+
+function downloadEmployeeTemplate(){
+  const b0 = allBranches()[0]||'BKK1 Flagship';
+  const data = [
+    {'Employee ID':'TUB-00101','Name':'Sample Employee','Role':'Employee','Branch':b0,'Department':'Operations','Position':'Barista','Date of Birth': new Date(1998,3,12)},
+    {'Employee ID':'TUB-00102','Name':'Sample Store Admin','Role':'Store Admin','Branch':b0,'Department':'Operations','Position':'Shift Lead','Date of Birth': new Date(1990,7,25)},
+  ];
+  const ws = XLSX.utils.json_to_sheet(data);
+  ws['!cols'] = autoFitColsObj(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Employees');
+  XLSX.writeFile(wb, 'employee-import-template.xlsx');
+}
+
+function handleEmployeeFileUpload(evt){
+  const file = evt.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const wb = XLSX.read(e.target.result, {type:'array', cellDates:true});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const raw = XLSX.utils.sheet_to_json(sheet, {defval:''});
+      const seenInFile = new Set();
+      state.empUploadRows = raw.map(row=>parseEmployeeRow(row, seenInFile));
+      state.empUploadMsg = null;
+    }catch(err){ state.empUploadMsg = 'Could not read that file: '+(err.message||'unknown error'); state.empUploadRows=[]; }
+    render();
+  };
+  reader.readAsArrayBuffer(file);
+}
+function parseEmployeeRow(rawRow, seenInFile){
+  const row = normKeys(rawRow);
+  const id = String(row['employee id'] || row['empid'] || row['id'] || '').trim().toUpperCase();
+  const name = String(row['name'] || row['full name'] || '').trim();
+  const roleRaw = String(row['role'] || 'employee').trim().toLowerCase();
+  const branch = String(row['branch'] || '').trim();
+  const department = String(row['department'] || '').trim();
+  const position = String(row['position'] || '').trim();
+  const dobRaw = row['date of birth'] ?? row['dob'] ?? row['birthday'] ?? '';
+
+  if(!id) return {ok:false, reason:'Missing Employee ID'};
+  if(!isValidTubId(id)) return {ok:false, reason:'ID must be TUB-00001 through TUB-10000', id, name};
+  if(seenInFile.has(id)) return {ok:false, reason:'Duplicate ID in this file', id, name};
+  seenInFile.add(id);
+  if(EMPLOYEES.some(e=>e.id===id)) return {ok:false, reason:'ID already exists', id, name};
+  if(!name) return {ok:false, reason:'Missing name', id};
+  if(!branch) return {ok:false, reason:'Missing branch', id, name};
+
+  const roleMap = {employee:'employee','store admin':'supervisor',supervisor:'supervisor',manager:'manager',owner:'admin',admin:'admin',hr:'admin','human resources':'admin'};
+  const role = roleMap[roleRaw];
+  if(!role) return {ok:false, reason:`Unknown role "${roleRaw}"`, id, name};
+
+  const dobParts = parseDobValue(dobRaw);
+  if(!validDobParts(dobParts)) return {ok:false, reason:'Missing or invalid date of birth', id, name};
+  const password = dobPartsToPassword(dobParts);
+  const dobIso = `${dobParts.y}-${pad2(dobParts.m)}-${pad2(dobParts.d)}`;
+
+  return { ok:true, id, name, password, dob:dobIso, role, roleLabel:roleLabel(role), branch, department, position };
+}
+function doImportEmployees(){
+  const rows = (state.empUploadRows||[]).filter(r=>r.ok);
+  if(!rows.length){ state.empUploadMsg='No valid rows to import.'; render(); return; }
+  rows.forEach(r=>EMPLOYEES.push({ id:r.id, name:r.name, password:r.password, dob:r.dob, role:r.role, branch:r.branch, department:r.department, position:r.position, status:'active', crossStoreAccess:false }));
+  logAudit(`Bulk-imported ${rows.length} employee account(s)`);
+  state.empUploadMsg = `Imported ${rows.length} account${rows.length===1?'':'s'}.`;
+  state.empUploadRows = [];
+  render();
+}
+function doAddEmployee(){
+  const id = document.getElementById('ne-id').value.trim().toUpperCase();
+  const name = document.getElementById('ne-name').value.trim();
+  const dob = document.getElementById('ne-dob').value; // yyyy-mm-dd from the date input
+  const role = document.getElementById('ne-role').value;
+  const branch = document.getElementById('ne-branch').value;
+  const department = document.getElementById('ne-dept').value.trim();
+  const position = document.getElementById('ne-position').value.trim();
+  if(!id || !name || !dob){ state.empMsg='Fill in ID, name and date of birth.'; render(); return; }
+  if(!isValidTubId(id)){ state.empMsg='Employee ID must be in the form TUB-00001 through TUB-10000.'; render(); return; }
+
+  if(state.editingEmpId){
+    const u = EMPLOYEES.find(e=>e.id===state.editingEmpId);
+    if(!u){ state.empMsg='That account no longer exists.'; state.editingEmpId=null; render(); return; }
+    if(u.role==='admin' && role!=='admin' && EMPLOYEES.filter(e=>e.role==='admin' && e.status!=='disabled').length<=1){
+      state.empMsg='Cannot change the last Human Resources account to another role.'; render(); return;
+    }
+    const password = isoDobToPassword(dob);
+    Object.assign(u, { name, dob, password, role, branch, department, position });
+    logAudit(`Updated employee ${name} (${id})`);
+    state.empMsg = `Updated ${name} (${id}). Password: ${password}.`;
+    state.editingEmpId = null;
+    state.newEmp = {id: nextAvailableTubId()||'', name:'', dob:'', role:'employee', branch:BRANCHES[0], department:'', position:''};
+    render(); return;
+  }
+
+  if(EMPLOYEES.some(e=>e.id===id)){ state.empMsg=`ID "${id}" is already in use.`; render(); return; }
+  const password = isoDobToPassword(dob);
+  EMPLOYEES.push({ id, name, dob, password, role, branch, department, position, status:'active', crossStoreAccess:false });
+  state.newEmp = {id: nextAvailableTubId()||'', name:'', dob:'', role:'employee', branch:BRANCHES[0], department:'', position:''};
+  logAudit(`Added employee ${name} (${id}, ${roleLabel(role)})`);
+  state.empMsg = `Added ${name} as ${id} (${roleLabel(role)}). Password: ${password}.`;
+  render();
+}
+function editEmployeeStart(id){
+  const u = EMPLOYEES.find(e=>e.id===id); if(!u) return;
+  state.editingEmpId = id;
+  state.newEmp = { id:u.id, name:u.name, dob:u.dob||'', role:u.role, branch:u.branch, department:u.department||'', position:u.position||'' };
+  state.empMsg = null;
+  render();
+}
+function cancelEditEmployee(){
+  state.editingEmpId = null;
+  state.newEmp = {id: nextAvailableTubId()||'', name:'', dob:'', role:'employee', branch:BRANCHES[0], department:'', position:''};
+  state.empMsg = null;
+  render();
+}
+function removeEmployee(id){
+  const u = EMPLOYEES.find(e=>e.id===id); if(!u) return;
+  if(u.id===currentUser.id){ showToast('You cannot remove your own account.'); return; }
+  if(u.role==='admin' && EMPLOYEES.filter(e=>e.role==='admin').length<=1){ showToast('Cannot remove the last Human Resources account.'); return; }
+  if(!confirm(`Permanently remove ${u.name} (${u.id})? Their past coupons stay on record, but they'll lose access immediately. This cannot be undone.`)) return;
+  EMPLOYEES = EMPLOYEES.filter(e=>e.id!==id);
+  logAudit(`Removed employee ${u.name} (${u.id})`);
+  showToast(`Removed ${u.name}.`);
+  render();
+}
+function toggleEmpStatus(id){
+  const u = EMPLOYEES.find(e=>e.id===id); if(!u) return;
+  u.status = u.status==='disabled' ? 'active' : 'disabled';
+  logAudit(`${u.status==='disabled'?'Disabled':'Enabled'} employee ${u.name} (${u.id})`);
+  render();
+}
+
+/* ═══════════════════ FRANCHISEES (Franchisee Master) ═══════════════════ */
+function renderAdminFranchisees(){
+  if(!state.newFr.id) state.newFr.id = nextAvailableFrId() || '';
+  const rows = FRANCHISEES.slice().sort((a,b)=>a.id.localeCompare(b.id));
+  return `
+  <div class="panel">
+    <h2 class="section-title" style="margin-top:0;">Add franchisee</h2>
+    <div class="hint">Franchisees are a separate audience from employees — a franchise business/contact, not a personal account. HR sets their password directly rather than using a date of birth.</div>
+    <div class="grid-2" style="margin-top:12px;">
+      <div class="field"><label>Franchisee ID</label><input type="text" id="nf-id" value="${state.newFr.id}" placeholder="FR-0001"/></div>
+      <div class="field"><label>Franchisee name</label><input type="text" id="nf-name" value="${state.newFr.name}" placeholder="e.g. ABC Co."/></div>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label>Contact</label><input type="text" id="nf-contact" value="${state.newFr.contact}" placeholder="Phone or email"/></div>
+      <div class="field"><label>Store</label><select id="nf-store">${allBranches().map(b=>`<option value="${b}" ${b===state.newFr.store?'selected':''}>${b}</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label>Password</label><input type="text" id="nf-pass" value="${state.newFr.password}" placeholder="Leave blank to auto-generate"/></div>
+    <button class="btn btn-gold" onclick="doAddFranchisee()">Add franchisee</button>
+    ${state.frMsg ? `<div class="msg ${state.frMsg.startsWith('Added')?'ok':'err'}">${state.frMsg}</div>` : ''}
+  </div>
+  <div class="panel table-wrap">
+    <table><thead><tr><th>ID</th><th>Name</th><th>Contact</th><th>Store</th><th>Contract</th><th>Eligible</th><th></th></tr></thead>
+    <tbody>${rows.length ? rows.map(f=>`<tr>
+      <td style="font-family:'JetBrains Mono';">${f.id}</td><td>${f.name}</td><td>${f.contact||'—'}</td><td>${f.store}</td>
+      <td><span class="badge ${f.status==='disabled'?'expired':'active'}">${f.status==='disabled'?'Inactive':'Active'}</span></td>
+      <td><span class="badge ${f.eligible?'active':'expired'}">${f.eligible?'Yes':'No'}</span></td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn btn-ghost" onclick="toggleFrStatus('${f.id}')">${f.status==='disabled'?'Reactivate':'Suspend'}</button>
+        <button class="btn btn-ghost" onclick="removeFranchisee('${f.id}')">Remove</button>
+        <button class="btn ${f.eligible?'btn-ghost':'btn-teal'}" onclick="toggleFrEligible('${f.id}')">${f.eligible?'Revoke eligibility':'Mark eligible'}</button>
+      </td>
+    </tr>`).join('') : '<tr><td colspan="7" class="empty-note">No franchisees added yet.</td></tr>'}</tbody></table>
+  </div>`;
+}
+function doAddFranchisee(){
+  const id = document.getElementById('nf-id').value.trim().toUpperCase();
+  const name = document.getElementById('nf-name').value.trim();
+  const contact = document.getElementById('nf-contact').value.trim();
+  const store = document.getElementById('nf-store').value;
+  let password = document.getElementById('nf-pass').value.trim();
+  if(!id || !name){ state.frMsg='Fill in at least the Franchisee ID and name.'; render(); return; }
+  if(!isValidFrId(id)){ state.frMsg='Franchisee ID must be in the form FR-0001 through FR-9999.'; render(); return; }
+  if(FRANCHISEES.some(f=>f.id===id)){ state.frMsg=`ID "${id}" is already in use.`; render(); return; }
+  if(!password) password = Math.random().toString(36).slice(2,8);
+  FRANCHISEES.push({ id, name, contact, store, password, status:'active', eligible:true });
+  state.newFr = { id: nextAvailableFrId()||'', name:'', contact:'', store:BRANCHES[0], password:'' };
+  logAudit(`Added franchisee ${name} (${id})`);
+  state.frMsg = `Added ${name} as ${id}. Password: ${password}.`;
+  render();
+}
+function toggleFrStatus(id){ const f=FRANCHISEES.find(x=>x.id===id); if(!f) return; f.status = f.status==='disabled'?'active':'disabled'; logAudit(`${f.status==='disabled'?'Suspended':'Reactivated'} franchisee ${f.name} (${f.id})`); render(); }
+function removeFranchisee(id){
+  const f = FRANCHISEES.find(x=>x.id===id); if(!f) return;
+  if(!confirm(`Permanently remove ${f.name} (${f.id})? Their past coupons stay on record, but they'll lose access immediately. This cannot be undone.`)) return;
+  FRANCHISEES = FRANCHISEES.filter(x=>x.id!==id);
+  logAudit(`Removed franchisee ${f.name} (${f.id})`);
+  showToast(`Removed ${f.name}.`);
+  render();
+}
+function toggleFrEligible(id){ const f=FRANCHISEES.find(x=>x.id===id); if(!f) return; f.eligible = !f.eligible; logAudit(`${f.eligible?'Marked eligible':'Revoked eligibility for'} franchisee ${f.name} (${f.id})`); render(); }
+
+/* ═══════════════════ BRANCHES (stores) ═══════════════════ */
+function renderAdminBranches(){
+  const branches = allBranches();
+  const managers = EMPLOYEES.filter(e=>['manager','supervisor'].includes(e.role) && e.status!=='disabled');
+  return `
+  <div class="panel">
+    <h2 class="section-title" style="margin-top:0;">Add a store</h2>
+    <div class="hint">Branches also appear automatically once an employee or franchisee is assigned to one — add one here ahead of time if you want it available in dropdowns before anyone's assigned.</div>
+    <div class="grid-2" style="margin-top:10px;">
+      <div class="field"><label>Store name</label><input type="text" id="nb-name" value="${state.newBranchName}" placeholder="e.g. Siem Reap Airport"/></div>
+      <div class="field" style="display:flex;align-items:flex-end;"><button class="btn btn-gold" onclick="doAddBranch()">Add store</button></div>
+    </div>
+    ${state.branchMsg ? `<div class="msg ${state.branchMsg.startsWith('Added')?'ok':'err'}">${esc(state.branchMsg)}</div>` : ''}
+  </div>
+  <div class="panel table-wrap">
+    <table><thead><tr><th>Store</th><th>Employees</th><th>Franchisees</th><th>Manager</th></tr></thead>
+    <tbody>${branches.map(b=>{
+      const empCount = EMPLOYEES.filter(e=>e.branch===b && e.status!=='disabled').length;
+      const frCount = FRANCHISEES.filter(f=>f.store===b && f.status!=='disabled').length;
+      const mgrId = BRANCH_MANAGERS[b] || '';
+      return `<tr><td>${esc(b)}</td><td>${empCount}</td><td>${frCount}</td>
+        <td><select data-branch-mgr="${esc(b)}">
+          <option value="">— none —</option>
+          ${managers.map(m=>`<option value="${m.id}" ${m.id===mgrId?'selected':''}>${esc(m.name)} (${esc(m.id)})</option>`).join('')}
+        </select></td></tr>`;
+    }).join('') || '<tr><td colspan="4" class="empty-note">No stores yet.</td></tr>'}</tbody></table>
+  </div>`;
+}
+function doAddBranch(){
+  const name = document.getElementById('nb-name').value.trim();
+  if(!name){ state.branchMsg='Enter a store name.'; render(); return; }
+  if(allBranches().some(b=>b.toLowerCase()===name.toLowerCase())){ state.branchMsg=`"${name}" already exists.`; render(); return; }
+  BRANCHES.push(name);
+  state.newBranchName='';
+  logAudit(`Added store "${name}"`);
+  state.branchMsg = `Added "${name}".`;
+  render();
+}
+function assignBranchManager(branch, empId){
+  if(empId) BRANCH_MANAGERS[branch]=empId; else delete BRANCH_MANAGERS[branch];
+  const emp = empId ? EMPLOYEES.find(e=>e.id===empId) : null;
+  logAudit(empId ? `Assigned ${emp?emp.name:empId} as manager of ${branch}` : `Cleared manager assignment for ${branch}`);
+}
+
+/* ═══════════════════ AUDIT LOG ═══════════════════ */
+function renderAdminAudit(){
+  return `
+  <div class="panel">
+    <div class="hint">Every issue, redemption, campaign change, and account change in this session, most recent first. Resets along with everything else on page refresh.</div>
+  </div>
+  <div class="panel table-wrap">
+    <table><thead><tr><th>When</th><th>By</th><th>Action</th></tr></thead>
+    <tbody>${AUDIT.length ? AUDIT.map(a=>`<tr><td>${a.ts.toLocaleString()}</td><td>${esc(a.by)}</td><td>${esc(a.text)}</td></tr>`).join('') : '<tr><td colspan="3" class="empty-note">No actions logged yet.</td></tr>'}</tbody></table>
+  </div>`;
+}
+
+/* ═══════════════════ RENDER DISPATCH ═══════════════════ */
+function render(){
+  if(!currentUser) return;
+  document.getElementById('view').innerHTML =
+    (state.role==='employee' || state.role==='franchisee') ? renderEmployeeView() :
+    (state.role==='storeAdmin' || state.role==='manager') ? renderStoreView() : renderAdminView();
+  bindEvents();
+}
+function syncCampaignFormFields(){
+  const nc = state.newCampaign;
+  const g=(id)=>{ const el=document.getElementById(id); return el ? el.value : undefined; };
+  if(g('cf-name')!==undefined) nc.name=g('cf-name');
+  if(g('cf-code')!==undefined) nc.code=g('cf-code');
+  if(g('cf-desc')!==undefined) nc.description=g('cf-desc');
+  if(g('cf-brand')!==undefined) nc.brand=g('cf-brand');
+  if(g('cf-category')!==undefined) nc.category=g('cf-category');
+  if(g('cf-benefit')!==undefined) nc.benefit=g('cf-benefit');
+  if(g('cf-terms')!==undefined) nc.terms=g('cf-terms');
+  if(g('cf-start')!==undefined) nc.startDate=g('cf-start');
+  if(g('cf-expiry')!==undefined) nc.expiryDate=g('cf-expiry');
+  if(g('cf-total-qty')!==undefined) nc.totalQuantity=g('cf-total-qty');
+  if(g('cf-qty-person')!==undefined) nc.qtyPerPerson=g('cf-qty-person');
+  if(g('cf-redemption-limit')!==undefined) nc.redemptionLimit=g('cf-redemption-limit');
+  if(g('cf-hours')!==undefined) nc.hours=g('cf-hours');
+  if(document.querySelector('[data-store]')) nc.applicableStores = Array.from(document.querySelectorAll('[data-store]:checked')).map(el=>el.getAttribute('data-store'));
+}
+
+function bindEvents(){
+  const b=(id,evt,fn)=>{ const el=document.getElementById(id); if(el) el.addEventListener(evt,fn); };
+  b('sel-month','change', e=>{ state.filterMonth=e.target.value; render(); });
+  b('sel-branch','change', e=>{ state.scanBranch=e.target.value; });
+  b('scan-input','input', e=>{ state.scanCode=e.target.value; });
+  b('issue-type','change', e=>{ state.issueType=e.target.value; state.issueScope='all'; state.issueSelected=[]; state.issueMsg=null; state.issueExpiry=''; state.issueQty=0; render(); });
+  b('issue-qty','input', e=>{ state.issueQty=parseInt(e.target.value)||1; });
+  b('issue-scope','change', e=>{ state.issueScope=e.target.value; state.issueMsg=null; render(); });
+  b('issue-branch','change', e=>{ state.issueBranch=e.target.value; });
+  b('issue-expiry','change', e=>{ state.issueExpiry=e.target.value; });
+  b('cf-elig-group','change', e=>{ syncCampaignFormFields(); state.newCampaign.eligibleGroup=e.target.value; render(); });
+  document.querySelectorAll('[data-emp]').forEach(cb=>cb.addEventListener('change', e=>{
+    const id=cb.getAttribute('data-emp');
+    if(e.target.checked){ if(!state.issueSelected.includes(id)) state.issueSelected.push(id); }
+    else{ state.issueSelected = state.issueSelected.filter(x=>x!==id); }
+  }));
+  b('filter-month-admin','change', e=>{ state.filterMonthAdmin=e.target.value; render(); });
+  b('filter-status','change', e=>{ state.filterStatus=e.target.value; render(); });
+  b('filter-audience','change', e=>{ state.filterAudience=e.target.value; render(); });
+  const fs=document.getElementById('filter-search');
+  if(fs) fs.addEventListener('input', e=>{
+    state.filterSearch=e.target.value;
+    document.getElementById('view').innerHTML = renderAdminView(); bindEvents();
+    const nf=document.getElementById('filter-search'); if(nf){ nf.focus(); nf.setSelectionRange(nf.value.length,nf.value.length); }
+  });
+  ['ne-id','ne-name','ne-dept','ne-position'].forEach(id=>b(id,'input', e=>{ state.newEmp[id.replace('ne-','').replace('dept','department')]=e.target.value; }));
+  b('ne-dob','change', e=>{ state.newEmp.dob=e.target.value; render(); });
+  b('ne-role','change', e=>{ state.newEmp.role=e.target.value; });
+  b('ne-branch','change', e=>{ state.newEmp.branch=e.target.value; });
+  ['nf-id','nf-name','nf-contact','nf-pass'].forEach(id=>b(id,'input', e=>{ state.newFr[id.replace('nf-','')]=e.target.value; }));
+  b('nf-store','change', e=>{ state.newFr.store=e.target.value; });
+  b('nb-name','input', e=>{ state.newBranchName=e.target.value; });
+  document.querySelectorAll('[data-branch-mgr]').forEach(sel=>sel.addEventListener('change', e=>{
+    assignBranchManager(sel.getAttribute('data-branch-mgr'), e.target.value);
+  }));
+}
+</script>
+</body>
+</html>
